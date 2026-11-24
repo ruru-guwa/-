@@ -19,7 +19,7 @@
   --shadow: 0 1px 2px rgba(28, 34, 48, .06), 0 4px 16px rgba(28, 34, 48, .06);
   --radius: 14px;
   --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "Songti SC", serif;
-  --sans: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "PingFang SC", sans-serif;
+  --sans: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "PingFang SC", sans-serif;
   --tabbar-h: 64px;
   --font-scale: 1;
 }
