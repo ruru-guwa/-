@@ -1,5 +1,5 @@
 /* =========================================================
-   上海旅行しおり — アプリ本体（試作版）
+   上海旅行しおり — アプリ本体
    ハッシュで画面を切り替える1ページ構成。データは各自の端末に保存。
    ========================================================= */
 (() => {
@@ -22,8 +22,13 @@
     quiz: store.get("quiz", {}),
     planMode: store.get("planMode", "choose"),
     large: store.get("large", false),
+    custom: store.get("custom", {}),    // 発見から予定に足した候補 { slotId: [findId, ...] }
   };
   const save = (k) => store.set(k, state[k]);
+  if (state.nowOverride) { state.nowOverride = ""; save("nowOverride"); } // 試作のときの日時の仮設定を消す
+
+  /* チェックリストの項目は、順番ではなく文章で覚える（項目を足してもチェックがずれない） */
+  const ckey = (list, text) => { let h = 5381; for (const ch of text) h = ((h * 33) ^ ch.codePointAt(0)) >>> 0; return `${list}#${h.toString(36)}`; };
 
   /* ---------------- 小道具 ---------------- */
   const $ = (s, el = document) => el.querySelector(s);
@@ -56,9 +61,14 @@
   }
 
   /* ---------------- 予定の計算 ---------------- */
-  const allOptions = () => PLAN.flatMap((d, di) => d.slots.flatMap((s) => (s.options || []).map((o) => ({ ...o, slot: s, day: d, dayIndex: di }))));
+  function optionsOf(slot) {
+    const extra = (state.custom[slot.id] || []).map((fid) => FINDS.find((f) => f.id === fid)).filter(Boolean)
+      .map((f) => ({ id: "f:" + f.id, title: f.name, why: f.catch, dur: f.stay, find: f.id, spot: f.link?.startsWith("#/spot/") ? f.link.slice(7) : undefined, lat: f.lat ?? undefined, lng: f.lng ?? undefined, tags: [], custom: true }));
+    return [...(slot.options || []), ...extra];
+  }
+  const allOptions = () => PLAN.flatMap((d, di) => d.slots.flatMap((s) => optionsOf(s).map((o) => ({ ...o, slot: s, day: d, dayIndex: di }))));
   function chosenOf(slot) {
-    if (slot.type === "choice") { const id = state.sel[slot.id]; return id ? slot.options.find((o) => o.id === id) : null; }
+    if (slot.type === "choice") { const id = state.sel[slot.id]; return id ? optionsOf(slot).find((o) => o.id === id) || null : null; }
     return null;
   }
   function splitOf(slot) { return state.sel[slot.id] || {}; }
@@ -66,7 +76,7 @@
     const set = new Set();
     PLAN.forEach((d) => d.slots.forEach((s) => {
       if (s.type === "choice") { const o = chosenOf(s); (o?.covers || []).forEach((c) => set.add(c)); }
-      if (s.type === "split") { Object.values(splitOf(s)).forEach((oid) => { const o = s.options.find((x) => x.id === oid); (o?.covers || []).forEach((c) => set.add(c)); }); }
+      if (s.type === "split") { Object.values(splitOf(s)).forEach((oid) => { const o = optionsOf(s).find((x) => x.id === oid); (o?.covers || []).forEach((c) => set.add(c)); }); }
     }));
     return set;
   }
@@ -75,7 +85,7 @@
     if (slot.type === "choice") { const o = chosenOf(slot); return o ? o.title : null; }
     if (slot.type === "split") {
       const m = splitOf(slot); const parts = [];
-      TRIP.members.forEach((p) => { if (slot.fixedFor?.[p.id]) parts.push(`${p.name}：ホテル`); else if (m[p.id]) parts.push(`${p.name}：${slot.options.find((o) => o.id === m[p.id])?.title}`); });
+      TRIP.members.forEach((p) => { if (slot.fixedFor?.[p.id]) parts.push(`${p.name}：ホテル`); else if (m[p.id]) parts.push(`${p.name}：${optionsOf(slot).find((o) => o.id === m[p.id])?.title}`); });
       return parts.length ? parts.join(" ／ ") : null;
     }
   }
@@ -239,12 +249,12 @@
 
     if (ph === "before") {
       const days = Math.ceil((new Date(TRIP.start) - n) / 86400000);
-      const prepLeft = CHECKLISTS.prep.items.filter((_, i) => !state.checks["prep:" + i]).length;
+      const prepLeft = CHECKLISTS.prep.items.filter((it) => !state.checks[ckey("prep", it)]).length;
       hero = `<div class="count"><span>出発まで</span><b>${days}</b><span>日</span></div>`;
       const prepTotal = CHECKLISTS.prep.items.length;
       const slotsAll = PLAN.flatMap((d) => d.slots.filter((s) => s.type !== "fixed"));
       const slotsDone = slotsAll.filter((s) => (s.type === "choice" && chosenOf(s)) || (s.type === "split" && Object.values(splitOf(s)).filter(Boolean).length)).length;
-      const nextPrep = CHECKLISTS.prep.items.find((_, i) => !state.checks["prep:" + i]);
+      const nextPrep = CHECKLISTS.prep.items.find((it) => !state.checks[ckey("prep", it)]);
       const tile = (href, label, val, total, unit, color) => `<a class="stat" href="${href}"><span class="stat-label">${label}</span>
         <span class="stat-num"><b>${val}</b><small>/${total}${unit}</small></span>
         <span class="bar"><i style="width:${Math.round((val / total) * 100)}%;background:var(${color})"></i></span></a>`;
@@ -273,7 +283,7 @@
             <h3>${esc(sum || s.title)}</h3>
             ${opt?.move ? `<div class="muted"><i class="ph ph-person-simple-walk"></i> ${esc(opt.move)}</div>` : ""}
             ${opt?.look ? `<div class="muted"><i class="ph ph-eye"></i> ${esc(opt.look)}</div>` : ""}
-            ${!sum ? `<div class="muted">まだ選んでいません（候補 ${s.options.length} 件）</div>` : ""}
+            ${!sum ? `<div class="muted">まだ選んでいません（候補 ${optionsOf(s).length} 件）</div>` : ""}
           </a>`;
         };
         main = `<div class="section-title">今日の予定 <small><a href="#/plan/${di}">一日を見る ›</a></small></div>
@@ -330,8 +340,8 @@
 
       ${state.hist.length ? `<div class="section-title">最近見たページ</div>
       <div class="card related">${state.hist.slice(0, 5).map((h) => `<a href="${hrefOfKey(h.key)}">${esc(h.title)}</a>`).join("")}</div>` : ""}
-
-      <p class="tiny" style="text-align:center;margin-top:20px">試作版 ・ 表示中の時刻：${sh.date} ${String(Math.floor(sh.min / 60)).padStart(2, "0")}:${String(sh.min % 60).padStart(2, "0")}（上海）${state.nowOverride ? "・日時を試し中" : ""}</p>`,
+      <p class="foot-note">内容は2026年11月下旬の調べです。営業時間や料金は、行く前にもう一度確認してください。<br>地図のデータ © OpenStreetMap contributors</p>
+`,
     };
   };
 
@@ -355,20 +365,20 @@
         const open = choose || !o;
         return `<div class="slot ${o ? "" : "slot-open"}">${time}<div class="card">
           <div class="kicker">${esc(s.title)}</div>
-          ${o ? `<h3>${esc(o.title)}</h3>${optMeta(o)}` : `<div class="empty-msg">まだ選んでいません（候補 ${s.options.length} 件）</div>`}
-          ${open ? `<div class="opts">${s.options.map((x) => optBtn(s, x, o?.id === x.id)).join("")}</div>` : ""}
+          ${o ? `<h3>${esc(o.title)}</h3>${optMeta(o)}` : `<div class="empty-msg">まだ選んでいません（候補 ${optionsOf(s).length} 件）</div>`}
+          ${open ? `<div class="opts">${optionsOf(s).map((x) => optBtn(s, x, o?.id === x.id)).join("")}</div>` : ""}
         </div></div>`;
       }
       if (s.type === "split") {
         const m = splitOf(s);
         const sum = TRIP.members.map((p) => {
-          const label = s.fixedFor?.[p.id] || (m[p.id] ? s.options.find((o) => o.id === m[p.id])?.title : "未定");
+          const label = s.fixedFor?.[p.id] || (m[p.id] ? optionsOf(s).find((o) => o.id === m[p.id])?.title : "未定");
           return `<div>${avatar(p.id)}<span>${esc(p.name)}：${esc(label)}</span></div>`;
         }).join("");
         return `<div class="slot">${time}<div class="card">
           <div class="kicker">${esc(s.title)} ・ 人ごとに選べる</div>
           <div class="split-sum">${sum}</div>
-          ${choose ? `<div class="opts">${s.options.map((x) => splitBtn(s, x, m)).join("")}</div>` : ""}
+          ${choose ? `<div class="opts">${optionsOf(s).map((x) => splitBtn(s, x, m)).join("")}</div>` : ""}
         </div></div>`;
       }
     };
@@ -377,15 +387,16 @@
       ${o.look ? `<dt>注目</dt><dd>${esc(o.look)}</dd>` : ""}
       ${o.move ? `<dt>移動</dt><dd>${esc(o.move)}</dd>` : ""}
       ${o.dur ? `<dt>時間</dt><dd>${esc(o.dur)}</dd>` : ""}
-      </dl>${o.spot ? `<a class="toggle-link" href="#/spot/${o.spot}">${esc(SPOTS[o.spot].name)}の解説を読む ›</a>` : ""}`;
+      </dl>${o.spot && SPOTS[o.spot] ? `<a class="toggle-link" href="#/spot/${o.spot}">${esc(SPOTS[o.spot].name)}の解説を読む ›</a>` : ""}${o.find && !o.spot ? `<a class="toggle-link" href="#/find/${o.find}">くわしく見る ›</a>` : ""}`;
     const optBtn = (s, x, on) => `<div class="opt ${on ? "on" : ""}" data-act="pick" data-slot="${s.id}" data-opt="${x.id}" role="button" tabindex="0">
         <div class="row"><span class="radio"></span><h4>${esc(x.title)}</h4><span class="dur">${esc(x.dur || "")}</span></div>
         <div class="why">${esc(x.why || "")}</div>
-        ${x.spot ? `<div class="more"><a href="#/spot/${x.spot}">解説 ›</a></div>` : ""}
+        <div class="more">${x.custom ? `<span class="pill jade">発見から追加</span>` : ""}${x.spot && SPOTS[x.spot] ? `<a href="#/spot/${x.spot}">解説 ›</a>` : x.find ? `<a href="#/find/${x.find}">くわしく ›</a>` : ""}${x.custom ? `<button class="unadd" data-act="unadd" data-slot="${s.id}" data-find="${x.find}">候補から外す</button>` : ""}</div>
       </div>`;
     const splitBtn = (s, x, m) => `<div class="opt ${Object.values(m).includes(x.id) ? "on" : ""}">
         <div class="row"><span class="radio"></span><h4>${esc(x.title)}</h4><span class="dur">${esc(x.dur || "")}</span></div>
         <div class="why">${esc(x.why || "")}</div>
+        ${x.custom ? `<div class="more"><span class="pill jade">発見から追加</span><button class="unadd" data-act="unadd" data-slot="${s.id}" data-find="${x.find}">候補から外す</button></div>` : x.find ? `<div class="more"><a href="#/find/${x.find}">くわしく ›</a></div>` : ""}
         <div class="persons">${TRIP.members.filter((p) => !s.fixedFor?.[p.id]).map((p) => `<button class="person ${m[p.id] === x.id ? "on" : ""}" data-act="assign" data-slot="${s.id}" data-opt="${x.id}" data-person="${p.id}">${avatar(p.id)}${esc(p.name)}</button>`).join("")}</div>
       </div>`;
 
@@ -395,11 +406,11 @@
       const range = `${s.time} – ${s.end}`;
       if (s.type === "split") {
         const m = splitOf(s);
-        const lines = TRIP.members.map((p) => `<div class="ag-person">${avatar(p.id)}<span>${esc(s.fixedFor?.[p.id] || (m[p.id] ? s.options.find((x) => x.id === m[p.id])?.title : "未定"))}</span></div>`).join("");
+        const lines = TRIP.members.map((p) => `<div class="ag-person">${avatar(p.id)}<span>${esc(s.fixedFor?.[p.id] || (m[p.id] ? optionsOf(s).find((x) => x.id === m[p.id])?.title : "未定"))}</span></div>`).join("");
         return `<div class="ag k-${k.id}"><i class="ph ph-users-three ag-ic"></i><div class="ag-body"><b>${esc(s.title)}</b><span class="ag-time">${range}</span>${lines}</div></div>`;
       }
       const title = s.type === "fixed" ? s.title : o?.title;
-      if (!title) return `<a class="ag ag-open" href="#" data-act="mode" data-mode="choose"><i class="ph ph-circle-dashed ag-ic"></i><div class="ag-body"><b>${esc(s.title)}：未選択</b><span class="ag-time">${range} ・ 候補 ${s.options.length} 件から選ぶ</span></div></a>`;
+      if (!title) return `<a class="ag ag-open" href="#" data-act="mode" data-mode="choose"><i class="ph ph-circle-dashed ag-ic"></i><div class="ag-body"><b>${esc(s.title)}：未選択</b><span class="ag-time">${range} ・ 候補 ${optionsOf(s).length} 件から選ぶ</span></div></a>`;
       const href = o?.spot ? `#/spot/${o.spot}` : null;
       const inner = `<i class="ph ph-${k.icon} ag-ic"></i><div class="ag-body"><b>${esc(title)}</b><span class="ag-time">${range}${o?.move ? ` ・ ${esc(o.move)}` : ""}</span></div>${href ? `<i class="ph ph-caret-right ag-go"></i>` : ""}`;
       return href ? `<a class="ag k-${k.id}" href="${href}">${inner}</a>` : `<div class="ag k-${k.id}">${inner}</div>`;
@@ -505,11 +516,14 @@
   PAGES.article = (args) => {
     const a = ARTICLES[args[0]];
     if (!a) return { title: "見つかりません", html: `<div class="empty">このページは準備中です</div>` };
+    const heads = [];
+    const body = linkify(a.html).replace(/<h3>(.*?)<\/h3>/g, (_, t) => { heads.push(t.replace(/<[^>]+>/g, "")); return `<h3 id="ah-${heads.length - 1}">${t}</h3>`; });
     return {
       title: a.title, fav: `article:${args[0]}`,
-      html: `<section class="spot-hero ${a.hero?.color || "red"}"><div class="big" style="font-size:3rem">${esc(a.hero?.big || "")}</div><div class="sub">${esc(a.hero?.sub || "")}</div><h2>${esc(a.title)}</h2><div class="catch">${esc(a.lead)}</div></section>
+      html: `<section class="spot-hero ${a.hero?.color ?? "red"}"><div class="big" style="font-size:3rem">${esc(a.hero?.big || "")}</div><div class="sub">${esc(a.hero?.sub || "")}</div><h2>${esc(a.title)}</h2><div class="catch">${esc(a.lead)}</div></section>
       <div class="pills" style="margin:14px 0 10px">${a.themes.map((t) => `<a class="pill" href="#/search?f=${encodeURIComponent(t)}">${esc(t)}</a>`).join("")}</div>
-      <div class="card article">${linkify(a.html)}</div>`,
+      ${heads.length > 2 ? `<div class="card"><div class="tiny" style="margin-bottom:6px">目次</div><div class="toc">${heads.map((h, i) => `<a href="#ah-${i}" data-act="jump" data-to="ah-${i}">${esc(h)}</a>`).join("")}</div></div>` : ""}
+      <div class="card article">${body}</div>`,
     };
   };
   PAGES.term = (args) => {
@@ -556,6 +570,7 @@
         ${apple ? `<a class="action" href="${apple}" target="_blank" rel="noopener"><i class="ph ph-map-pin"></i> Appleマップ</a>` : ""}
         ${hasPos(f) ? `<a class="action" href="#/map?focus=f:${f.id}"><i class="ph ph-map-pin-line"></i> 位置関係</a>` : ""}
       </div>
+      <button class="cta add" data-act="add-open" data-find="${f.id}"><i class="ph ph-calendar-plus"></i> 予定の候補に入れる${(() => { const n = Object.values(state.custom).filter((a) => a.includes(f.id)).length; return n ? `<small>（${n}か所に追加済み）</small>` : ""; })()}</button>
       ${glanceHtml(f)}
       ${whoHtml(f)}
       ${f.more && SPOTS[f.more] ? `<a class="cta alt" href="#/spot/${f.more}"><i class="ph ph-book-open-text"></i><span>このエリアの詳しい解説<br><b>${esc(SPOTS[f.more].name)}</b></span><i class="ph ph-caret-right"></i></a>` : ""}
@@ -659,15 +674,25 @@
     };
   };
 
-  /* ---------------- 地図（概略図：外部の地図サービスに頼らない） ---------------- */
-  const B = { minLat: 31.212, maxLat: 31.256, minLng: 121.460, maxLng: 121.522 };
-  const W = 600, H = Math.round(W * ((B.maxLat - B.minLat) / ((B.maxLng - B.minLng) * Math.cos(31.23 * Math.PI / 180))));
+  /* ---------------- 地図（OpenStreetMap のデータをしおりの中に保存して描く。外部の地図サービスには頼らない） ---------------- */
+  const W = 600, H = 560;
+  const HOME_VIEW = { lat: 31.2350, lng: 121.4830, zoom: 1 };
+  const MAPV = { ...HOME_VIEW };
+  const BASE_SPAN = 0.07; // zoom 1 のときの東西の幅（経度）
+  const COSLAT = Math.cos((31.23 * Math.PI) / 180);
+  function viewBounds(v = MAPV) {
+    const spanLng = BASE_SPAN / v.zoom, spanLat = spanLng * COSLAT * (H / W);
+    return { minLng: v.lng - spanLng / 2, maxLng: v.lng + spanLng / 2, minLat: v.lat - spanLat / 2, maxLat: v.lat + spanLat / 2 };
+  }
+  let B = viewBounds();
   const px = (lat, lng) => [((lng - B.minLng) / (B.maxLng - B.minLng)) * W, ((B.maxLat - lat) / (B.maxLat - B.minLat)) * H];
   const path = (pts) => pts.map(([la, ln], i) => { const [x, y] = px(la, ln); return `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`; }).join(" ");
-  const RIVER = [[31.200, 121.487], [31.212, 121.4985], [31.224, 121.5005], [31.233, 121.4975], [31.2405, 121.4945], [31.2465, 121.4965], [31.2505, 121.5040], [31.2520, 121.5150], [31.2560, 121.5320]];
-  const CREEK = [[31.2470, 121.4600], [31.2445, 121.4720], [31.2450, 121.4830], [31.2440, 121.4925]];
+  const inView = (lat, lng, b = B) => lat > b.minLat && lat < b.maxLat && lng > b.minLng && lng < b.maxLng;
+  const metersPerPx = () => ((B.maxLng - B.minLng) * 111320 * COSLAT) / W;
+  const ROAD_LABELS = ["南京西路", "延安東路", "人民路", "中華路", "中山東一路", "西藏中路", "淮海中路", "世紀大道", "四川北路", "楊樹浦路", "浦東南路", "北京東路"];
 
   PAGES.map = (_, q) => {
+    B = viewBounds();
     const old = q.get("old") === "1";
     const dayI = q.get("day");
     const focus = q.get("focus");
@@ -678,39 +703,50 @@
       pts.push([TRIP.hotel.lat, TRIP.hotel.lng]);
       if (pts.length > 2) route = `<path d="${path(pts)}" fill="none" stroke="#b5332a" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round"/>`;
     }
-    const [wcx, wcy] = px(31.2255, 121.4885);
-    const [rx] = [((0.0088) / (B.maxLng - B.minLng)) * W]; const ry = ((0.0062) / (B.maxLat - B.minLat)) * H;
-    const [rcx, rcy] = px(31.2318, 121.4722);
+    const mpp = metersPerPx();
+    const rivers = MAPDATA.rivers.map((r) => `<path d="${path(r.pts)}" fill="none" stroke="#bcd8f2" stroke-width="${Math.max(r.name === "黄浦江" ? 10 : 3, r.w / mpp).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"/>`).join("");
+    const roads = Object.values(MAPDATA.roads).flat().map((pts) => `<path d="${path(pts)}" fill="none" stroke="#dfe3ea" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`).join("");
+    const roadLabels = MAPV.zoom >= 0.9 ? ROAD_LABELS.map((n) => {
+      const segs = MAPDATA.roads[n]; if (!segs) return "";
+      const longest = segs.reduce((a, b) => (b.length > a.length ? b : a));
+      const mid = longest[Math.floor(longest.length / 2)];
+      if (!inView(mid[0], mid[1])) return "";
+      const [x, y] = px(mid[0], mid[1]);
+      return `<text x="${x}" y="${y}" class="road-label" text-anchor="middle">${n}</text>`;
+    }).join("") : "";
+    const riverLabels = [["黄浦江", 31.2205, 121.4985], ["蘇州河", 31.2460, 121.4650]].filter(([, la, ln]) => inView(la, ln)).map(([n, la, ln]) => { const [x, y] = px(la, ln); return `<text x="${x}" y="${y}" class="river-label" text-anchor="middle">${n}</text>`; }).join("");
+    const sideLabels = [["浦西", 31.2530, 121.4620], ["浦東", 31.2220, 121.5160]].filter(([, la, ln]) => inView(la, ln)).map(([n, la, ln]) => { const [x, y] = px(la, ln); return `<text x="${x}" y="${y}" class="side-label">${n}</text>`; }).join("");
+
+    const [rcx, rcy] = px(31.2328, 121.4693);
+    const rr = 330 / mpp; // 競馬場（人民広場・人民公園）のおおよその広さ
     const oldLayer = old ? `
-      <g opacity=".95">
-        <ellipse cx="${wcx}" cy="${wcy}" rx="${rx}" ry="${ry}" fill="rgba(47,107,94,.12)" stroke="#2f6b5e" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round"/>
-        <text x="${wcx}" y="${wcy + ry + 18}" text-anchor="middle" font-size="12" fill="#2f6b5e" font-weight="700">旧市街の城壁（1553〜1912）→ 今の人民路・中華路</text>
-        <path d="${path([[31.2338, 121.4935], [31.2318, 121.4830], [31.2302, 121.4700], [31.2295, 121.4600]])}" stroke="#3b7bbf" stroke-width="6" fill="none" opacity=".55" stroke-linecap="round"/>
-        <text x="${px(31.2290, 121.4640)[0]}" y="${px(31.2290, 121.4640)[1] + 16}" font-size="12" fill="#3b7bbf" font-weight="700">洋涇浜（川）→ 今の延安東路</text>
-        <ellipse cx="${rcx}" cy="${rcy}" rx="26" ry="20" fill="rgba(156,116,48,.15)" stroke="#9c7430" stroke-width="2"/>
-        <text x="${rcx}" y="${rcy + 36}" text-anchor="middle" font-size="12" fill="#9c7430" font-weight="700">競馬場 → 人民広場</text>
-        <text x="${px(31.2490, 121.4700)[0]}" y="${px(31.2490, 121.4700)[1]}" font-size="16" fill="#1f3350" font-weight="800" opacity=".55">共同租界</text>
-        <text x="${px(31.2160, 121.4630)[0]}" y="${px(31.2160, 121.4630)[1]}" font-size="16" fill="#1f3350" font-weight="800" opacity=".55">フランス租界</text>
-        <text x="${px(31.2280, 121.5080)[0]}" y="${px(31.2280, 121.5080)[1]}" font-size="13" fill="#5a6273" font-weight="700">（倉庫・埠頭・畑）</text>
+      <g>
+        ${MAPDATA.oldwall.map((pts) => `<path d="${path(pts)}" fill="none" stroke="#2f6b5e" stroke-width="5" stroke-dasharray="2 6" stroke-linecap="round" opacity=".9"/>`).join("")}
+        ${MAPDATA.yangjingbang.map((pts) => `<path d="${path(pts)}" fill="none" stroke="#3b7bbf" stroke-width="7" stroke-linecap="round" opacity=".5"/>`).join("")}
+        <ellipse cx="${rcx}" cy="${rcy}" rx="${rr * 1.25}" ry="${rr}" fill="rgba(156,116,48,.15)" stroke="#9c7430" stroke-width="2"/>
+        ${(() => { const [x, y] = px(31.2168, 121.4870); return `<text x="${x}" y="${y}" class="old-label" fill="#2f6b5e" text-anchor="middle">旧市街の城壁の跡（人民路・中華路）</text>`; })()}
+        ${(() => { const [x, y] = px(31.2300, 121.4585); return `<text x="${x}" y="${y}" class="old-label" fill="#3b7bbf">洋涇浜（川）＝ 今の延安東路</text>`; })()}
+        <text x="${rcx}" y="${rcy + rr + 16}" class="old-label" fill="#9c7430" text-anchor="middle">競馬場 → 人民広場</text>
+        ${(() => { const [x, y] = px(31.2455, 121.4720); return `<text x="${x}" y="${y}" class="old-big">共同租界</text>`; })()}
+        ${(() => { const [x, y] = px(31.2170, 121.4600); return `<text x="${x}" y="${y}" class="old-big">フランス租界</text>`; })()}
+        ${(() => { const [x, y] = px(31.2272, 121.5125); return `<text x="${x}" y="${y}" class="old-label" fill="#5a6273">（倉庫・埠頭・畑）</text>`; })()}
       </g>` : "";
 
-    const pins = PLACES.map((p) => {
+    const fFocus = focus && focus.startsWith("f:") ? focus.slice(2) : null;
+    const dots = FINDS.filter((f) => hasPos(f) && !f.link && inView(f.lat, f.lng)).map((f) => {
+      const [x, y] = px(f.lat, f.lng); const col = CAT_COLOR[FIND_CATS[f.cat].color || "navy"]; const on = fFocus === f.id;
+      return `<g class="map-pin" data-act="pin" data-id="f:${f.id}">${on ? `<circle class="halo" cx="${x}" cy="${y}" r="18"/>` : ""}<circle cx="${x}" cy="${y}" r="${on ? 7 : 5.5}" fill="${col}" stroke="#fff" stroke-width="2"/>${on || MAPV.zoom >= 2 ? `<text x="${x + 9}" y="${y + 4}" class="dot-label">${esc(f.name.replace(/（.*?）/g, ""))}</text>` : ""}</g>`;
+    }).join("");
+    const pins = PLACES.filter((p) => inView(p.lat, p.lng)).map((p) => {
       const [x, y] = px(p.lat, p.lng);
       const isF = focus && (p.spot === focus || p.id === focus);
       const fill = p.kind === "hotel" ? "#1f3350" : p.spot ? "#b5332a" : "#9c7430";
       return `<g class="map-pin" data-act="pin" data-id="${p.id}">${isF ? `<circle class="halo" cx="${x}" cy="${y}" r="22"/>` : ""}<circle cx="${x}" cy="${y}" r="${p.kind === "hotel" ? 9 : 7}" fill="${fill}" stroke="#fff" stroke-width="2.5"/>
-        ${p.kind === "hotel" ? `<text x="${x}" y="${y + 3.5}" text-anchor="middle" font-size="9" fill="#fff" stroke="none" style="stroke:none">H</text>` : ""}
+        ${p.kind === "hotel" ? `<text x="${x}" y="${y + 3.5}" text-anchor="middle" font-size="9" fill="#fff" style="stroke:none">H</text>` : ""}
         <text x="${x + 11}" y="${y + 4}">${esc(p.name)}</text></g>`;
     }).join("");
-
-    // 発見の場所：中心部の中は小さな点、外は一覧に
-    const inB = (f) => hasPos(f) && f.lat > B.minLat && f.lat < B.maxLat && f.lng > B.minLng && f.lng < B.maxLng;
-    const fFocus = focus && focus.startsWith("f:") ? focus.slice(2) : null;
-    const dots = FINDS.filter((f) => inB(f) && !f.link).map((f) => {
-      const [x, y] = px(f.lat, f.lng); const col = CAT_COLOR[FIND_CATS[f.cat].color || "navy"]; const on = fFocus === f.id;
-      return `<g class="map-pin" data-act="pin" data-id="f:${f.id}">${on ? `<circle class="halo" cx="${x}" cy="${y}" r="18"/>` : ""}<circle cx="${x}" cy="${y}" r="${on ? 7 : 5}" fill="${col}" stroke="#fff" stroke-width="2"/>${on ? `<text x="${x + 10}" y="${y + 4}">${esc(f.name)}</text>` : ""}</g>`;
-    }).join("");
-    const outs = FINDS.filter((f) => hasPos(f) && !inB(f)).sort((a, b) => distKm(a) - distKm(b));
+    const homeB = viewBounds(HOME_VIEW);
+    const outs = FINDS.filter((f) => hasPos(f) && !inView(f.lat, f.lng, homeB)).sort((a, b) => distKm(a) - distKm(b));
     const qs = (o) => { const p = new URLSearchParams(q); Object.entries(o).forEach(([k, v]) => (v == null ? p.delete(k) : p.set(k, v))); p.set("keep", "1"); return "#/map?" + p.toString(); };
     return {
       title: "地図",
@@ -718,28 +754,59 @@
       <div class="seg"><a class="${!old ? "on" : ""}" href="${qs({ old: null })}">今の地図</a><a class="${old ? "on" : ""}" href="${qs({ old: "1" })}">昔の地図を重ねる</a></div>
       <div class="chips" style="margin-bottom:10px"><a class="chip ${dayI == null ? "on" : ""}" href="${qs({ day: null })}">ルートなし</a>${PLAN.map((d, i) => `<a class="chip ${dayI == i ? "on" : ""}" href="${qs({ day: i })}">${d.label}のルート</a>`).join("")}</div>
       <div class="mapwrap">
-        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="上海中心部の概略図">
-          <defs><pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#e8ebf2" stroke-width="1"/></pattern></defs>
-          <rect width="${W}" height="${H}" fill="url(#grid)"/>
-          <path d="${path(RIVER)}" fill="none" stroke="#bcd8f2" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="${path(CREEK)}" fill="none" stroke="#bcd8f2" stroke-width="7" stroke-linecap="round"/>
-          <text x="${px(31.2180, 121.5030)[0]}" y="${px(31.2180, 121.5030)[1]}" font-size="13" fill="#4f7894" font-weight="700" transform="rotate(-70 ${px(31.2180, 121.5030).join(" ")})">黄浦江</text>
-          <text x="${px(31.2470, 121.4650)[0]}" y="${px(31.2470, 121.4650)[1] - 8}" font-size="11" fill="#4f7894" font-weight="700">蘇州河</text>
-          <text x="${px(31.2530, 121.4640)[0]}" y="${px(31.2530, 121.4640)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="Zen Kaku Gothic New, sans-serif">浦西</text>
-          <text x="${px(31.2200, 121.5120)[0]}" y="${px(31.2200, 121.5120)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="Zen Kaku Gothic New, sans-serif">浦東</text>
+        <svg id="mapsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="上海中心部の地図">
+          <rect width="${W}" height="${H}" fill="#f7f8fb"/>
+          ${roads}
+          ${rivers}
+          ${roadLabels}${riverLabels}${sideLabels}
           ${oldLayer}
           ${route}
           ${dots}
           ${pins}
         </svg>
+        <div class="map-ctrl">
+          <button data-act="map-zoom" data-z="1.5" aria-label="拡大"><i class="ph ph-plus"></i></button>
+          <button data-act="map-zoom" data-z="0.667" aria-label="縮小"><i class="ph ph-minus"></i></button>
+          <button data-act="map-home" aria-label="ホテルのまわりに戻る"><i class="ph ph-crosshair"></i></button>
+        </div>
+        <div class="map-attr">© OpenStreetMap contributors</div>
       </div>
       <div class="map-legend">${Object.values(FIND_CATS).map((c) => `<span class="lg"><i style="background:${CAT_COLOR[c.color || "navy"]}"></i>${c.label}</span>`).join("")}<span class="lg"><i class="big" style="background:#b5332a"></i>解説のある場所</span></div>
       <div id="mapcard"></div>
-      <div class="tiny" style="margin-top:8px">※ 概略図です。位置はおおよそ。点をタップすると名前が出ます。</div>
+      <div class="tiny" style="margin-top:8px">地図は指でずらせます。＋で拡大すると、点に名前が出ます。川と道路は OpenStreetMap のデータをもとに描いています。</div>
       <div class="section-title">中心部の外 <small>近い順</small></div>
       <div class="card list-card">${outs.map(findRow).join("")}</div>
       <div class="offmap"><div><span><i class="ph ph-airplane"></i>浦東空港</span><span class="muted">ホテルから東へ約40km</span></div></div>`,
-      after() { if (focus) showPin(focus.startsWith("f:") ? focus : PLACES.find((p) => p.spot === focus || p.id === focus)?.id); },
+      after() {
+        if (focus) {
+          const t = focus.startsWith("f:") ? FINDS.find((f) => f.id === focus.slice(2)) : PLACES.find((p) => p.spot === focus || p.id === focus);
+          if (t && hasPos(t) && !inView(t.lat, t.lng)) { MAPV.lat = t.lat; MAPV.lng = t.lng; keepRender(); return; }
+          showPin(focus.startsWith("f:") ? focus : t?.id);
+        }
+        // 指でずらす
+        const svg = $("#mapsvg"); if (!svg) return;
+        let st = null;
+        svg.addEventListener("pointerdown", (e) => { st = { x: e.clientX, y: e.clientY, lat: MAPV.lat, lng: MAPV.lng, drag: false, id: e.pointerId }; });
+        svg.addEventListener("pointermove", (e) => {
+          if (!st) return;
+          const dx = e.clientX - st.x, dy = e.clientY - st.y;
+          if (!st.drag && Math.hypot(dx, dy) > 6) { st.drag = true; svg.setPointerCapture(st.id); }
+          if (st.drag) svg.style.transform = `translate(${dx}px, ${dy}px)`;
+        });
+        const end = (e) => {
+          if (!st) return;
+          if (st.drag) {
+            const r = svg.getBoundingClientRect(); const dx = e.clientX - st.x, dy = e.clientY - st.y;
+            MAPV.lng = st.lng - (dx / r.width) * (B.maxLng - B.minLng);
+            MAPV.lat = st.lat + (dy / r.height) * (B.maxLat - B.minLat);
+            svg.style.transform = ""; st = null; keepRender(); return;
+          }
+          st = null;
+        };
+        svg.addEventListener("pointerup", end);
+        svg.addEventListener("pointercancel", () => { svg.style.transform = ""; st = null; });
+        svg.addEventListener("wheel", (e) => { e.preventDefault(); MAPV.zoom = Math.min(5, Math.max(0.4, MAPV.zoom * (e.deltaY < 0 ? 1.25 : 0.8))); keepRender(); }, { passive: false });
+      },
     };
   };
   const CAT_COLOR = { red: "#b5332a", teal: "#2f6b8f", jade: "#2f6b5e", gold: "#9c7430", rose: "#b4507a", navy: "#1f3350" };
@@ -774,7 +841,7 @@
         ${t("#/tools/check", "check-square", "準備・持ち物", "出発前のやることと持ち物")}
         ${t("#/tools/quiz", "question", "上海クイズ", "4人で遊べる")}
         ${t("#/favs", "star", "気になるリスト", `${state.favs.length} 件`)}
-        ${t("#/tools/settings", "gear", "設定", "文字の大きさ・日時を試す")}
+        ${t("#/tools/settings", "gear", "設定", "文字の大きさ・選んだ予定のリセット")}
       </div>`,
     };
   };
@@ -827,7 +894,7 @@
     }),
     check: () => ({
       title: "準備・持ち物",
-      html: Object.entries(CHECKLISTS).map(([k, l]) => { const d = l.items.filter((_, i) => state.checks[`${k}:${i}`]).length; return `<div class="section-title">${l.title} <small>${d}/${l.items.length}</small></div><div class="card">${l.items.map((it, i) => `<div class="mission ${state.checks[`${k}:${i}`] ? "on" : ""}" data-act="check" data-key="${k}:${i}"><span class="check"></span><span>${esc(it)}</span></div>`).join("")}</div>`; }).join(""),
+      html: Object.entries(CHECKLISTS).map(([k, l]) => { const d = l.items.filter((it) => state.checks[ckey(k, it)]).length; return `<div class="section-title">${l.title} <small>${d}/${l.items.length}</small></div><div class="card">${l.items.map((it) => `<div class="mission ${state.checks[ckey(k, it)] ? "on" : ""}" data-act="check" data-key="${ckey(k, it)}"><span class="check"></span><span>${esc(it)}</span></div>`).join("")}</div>`; }).join(""),
     }),
     quiz: () => {
       const all = Object.entries(SPOTS).flatMap(([id, s]) => s.quiz.map((q, i) => ({ key: `${id}:${i}`, q, spot: s.name })));
@@ -841,13 +908,24 @@
     settings: () => ({
       title: "設定",
       html: `<div class="card"><b>文字の大きさ</b><div class="seg" style="margin:8px 0 0"><button class="${!state.large ? "on" : ""}" data-act="large" data-v="0">ふつう</button><button class="${state.large ? "on" : ""}" data-act="large" data-v="1">大きめ</button></div></div>
-      <div class="card"><b>日時を試す（試作用）</b><div class="muted" style="font-size:.85rem">旅行中のホーム画面を確かめるため、上海時間の日時を仮に設定できます。</div>
-        <input id="nowov" type="datetime-local" value="${esc(state.nowOverride)}" style="width:100%;font:inherit;padding:8px;margin-top:8px;border:1px solid var(--line);border-radius:10px">
-        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" data-act="nowset" data-v="2026-12-10T10:00">12/10 10:00</button><button class="btn" data-act="nowset" data-v="2026-12-11T12:00">12/11 12:00</button><button class="btn" data-act="nowset" data-v="">今の日時に戻す</button></div></div>
       <div class="card"><b>選んだ予定をリセット</b><div style="margin-top:8px"><button class="btn" data-act="reset-sel">すべての選択を消す</button></div></div>`,
-      after() { $("#nowov").addEventListener("change", (e) => { state.nowOverride = e.target.value; save("nowOverride"); toast("日時を設定しました"); }); },
     }),
   };
+
+  /* ---------------- 発見 → 予定の候補に入れる ---------------- */
+  function openAddSheet(fid) {
+    const f = FINDS.find((x) => x.id === fid); if (!f) return;
+    const el = document.createElement("div");
+    el.className = "sheet-wrap";
+    el.innerHTML = `<div class="sheet" role="dialog" aria-label="予定の候補に入れる">
+      <div class="sheet-head"><b>「${esc(f.name)}」を、どの時間の候補に入れる？</b><button class="iconbtn" data-act="sheet-close" aria-label="閉じる">${IC.close}</button></div>
+      ${PLAN.map((d) => `<div class="label-s" style="margin:14px 2px 6px">${d.label}（${d.dow}）${esc(d.title)}</div>
+        ${d.slots.filter((sl) => sl.type !== "fixed").map((sl) => { const on = (state.custom[sl.id] || []).includes(fid); return `<button class="sheet-row ${on ? "on" : ""}" data-act="add-to" data-slot="${sl.id}" data-find="${fid}"><span class="sr-time">${sl.time}</span><span class="sr-title">${esc(sl.title)}</span>${on ? `<i class="ph ph-check-circle"></i>` : `<i class="ph ph-plus-circle"></i>`}</button>`; }).join("")}`).join("")}
+      <p class="tiny" style="margin-top:12px">入れた候補は「予定」の画面で、ほかの候補と同じように選べます。</p>
+    </div>`;
+    el.addEventListener("click", (e) => { if (e.target === el) el.remove(); });
+    document.body.appendChild(el);
+  }
 
   /* ---------------- 全画面表示 ---------------- */
   function showBig({ zh, addr, ja, py }) {
@@ -880,8 +958,29 @@
     else if (a === "rate-q") { const v = +el.dataset.v; $("#cny").value = v; $("#jpy").value = Math.round(v * state.rate); }
     else if (a === "pin") { showPin(el.dataset.id); }
     else if (a === "random") { randomFind(); }
+    else if (a === "map-zoom") { MAPV.zoom = Math.min(5, Math.max(0.4, MAPV.zoom * +el.dataset.z)); keepRender(); }
+    else if (a === "map-home") { Object.assign(MAPV, HOME_VIEW); keepRender(); }
+    else if (a === "add-open") { openAddSheet(el.dataset.find); }
+    else if (a === "sheet-close") { el.closest(".sheet-wrap")?.remove(); }
+    else if (a === "add-to") {
+      const { slot, find } = el.dataset; const list = state.custom[slot] || [];
+      state.custom[slot] = list.includes(find) ? list.filter((x) => x !== find) : [...list, find];
+      if (!state.custom[slot].length) delete state.custom[slot];
+      save("custom");
+      const added = (state.custom[slot] || []).includes(find);
+      const dayI = PLAN.findIndex((d) => d.slots.some((x) => x.id === slot));
+      toast(added ? `${PLAN[dayI].label}の候補に入れました` : "候補から外しました");
+      el.closest(".sheet-wrap")?.remove(); keepRender();
+    }
+    else if (a === "unadd") {
+      const { slot, find } = el.dataset;
+      state.custom[slot] = (state.custom[slot] || []).filter((x) => x !== find);
+      if (!state.custom[slot].length) delete state.custom[slot];
+      if (state.sel[slot] === "f:" + find) delete state.sel[slot];
+      if (state.sel[slot] && typeof state.sel[slot] === "object") Object.keys(state.sel[slot]).forEach((k) => { if (state.sel[slot][k] === "f:" + find) delete state.sel[slot][k]; });
+      save("custom"); save("sel"); toast("候補から外しました"); keepRender();
+    }
     else if (a === "large") { state.large = el.dataset.v === "1"; save("large"); applyLarge(); keepRender(); }
-    else if (a === "nowset") { state.nowOverride = el.dataset.v; save("nowOverride"); toast(el.dataset.v ? "日時を設定しました" : "今の日時に戻しました"); keepRender(); }
     else if (a === "reset-sel") { if (confirm("選んだ予定をすべて消しますか？")) { state.sel = {}; save("sel"); toast("リセットしました"); } }
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches?.(".opt[data-act]")) e.target.click(); });

@@ -48,47 +48,51 @@ const FIND_FITS = {
 
 const FINDS = [
   /* ===================== 詳しい解説ページがあるもの ===================== */
-  { id: "bund", link: "#/spot/bund", cat: "sight", badges: ["classic"], name: "外灘", zh: "外滩", big: "外滩", lat: 31.2400, lng: 121.4905,
+  { id: "bund", link: "#/spot/bund", cat: "sight", badges: ["classic"], name: "外灘", zh: "外滩", big: "外滩", lat: 31.242, lng: 121.4862,
     catch: "百年前の銀行街から、川向こうの未来都市を眺める。上海の「過去」と「今」がいちばん近づく場所。",
     fits: ["history", "art", "photo", "night"], stay: "昼・夜それぞれ1〜2時間", walk: 2, budget: 0, best: "朝と夜", indoor: false,
     who: ["上海に来たら一度は見たい、という人全員", "古い建物や歴史の話が好きな人", "夜景の写真を撮りたい人"] },
-  { id: "yuyuan", link: "#/spot/yuyuan", cat: "sight", badges: ["classic"], name: "豫園", zh: "豫园", big: "豫园", lat: 31.2272, lng: 121.4921,
+  { id: "yuyuan", link: "#/spot/yuyuan", cat: "sight", badges: ["classic"], name: "豫園", zh: "豫园", big: "豫园", lat: 31.22893, lng: 121.48798,
     catch: "租界ができる300年前から、ここが「上海」だった。城壁の中の街に残る、明の時代の庭園。",
     fits: ["history", "photo", "food", "shop"], stay: "3時間ほど", walk: 2, budget: 1, best: "朝（開園直後）", indoor: false,
     who: ["いかにも中国らしい景色を見たい人", "小籠包を本場で食べたい人", "日本の庭園との違いを感じたい人"] },
-  { id: "cruise", link: "#/spot/cruise", cat: "night", badges: ["classic"], name: "黄浦江クルーズ", zh: "黄浦江游览", big: "浦江", lat: 31.2300, lng: 121.4990,
+  { id: "cruise", link: "#/spot/cruise", cat: "night", badges: ["classic"], name: "黄浦江クルーズ", zh: "黄浦江游览", big: "浦江", lat: 31.23059, lng: 121.49378,
     catch: "川の上から、100年前と今の夜景を同時に見る。",
     fits: ["photo", "night", "relax", "ride"], stay: "約1時間", walk: 1, budget: 2, best: "夜", indoor: "half",
     who: ["歩き疲れた日の夜に、座って夜景を楽しみたい人", "外灘と陸家嘴を一度に見たい人"] },
-  { id: "acrobat", link: "#/spot/acrobat", cat: "night", badges: ["classic"], name: "雑技（ERA 時空之旅）", zh: "上海马戏城", big: "杂技", lat: 31.2799, lng: 121.4520,
+  { id: "acrobat", link: "#/spot/acrobat", cat: "night", badges: ["classic"], name: "雑技（ERA 時空之旅）", zh: "上海马戏城", big: "杂技", lat: 31.2812, lng: 121.4465,
     catch: "2000年前の宮廷の見世物が、光と音のショーになった。",
     fits: ["night", "relax", "history"], stay: "1〜1.5時間＋移動", walk: 1, budget: 3, best: "夜（19:30開演）", indoor: true,
     who: ["言葉がわからなくても楽しめるショーを見たい人", "みんなで同じものを見て盛り上がりたい人"] },
-  { id: "area-nanjing", link: "#/spot/nanjing", cat: "walk", badges: ["classic"], name: "南京東路と人民広場（解説）", zh: "南京东路 / 人民广场", big: "南京路", lat: 31.2330, lng: 121.4740,
+  { id: "area-hotel", link: "#/spot/hotel", cat: "sight", badges: ["classic"], name: "コンラッド上海（ホテル）", zh: "上海康莱德酒店", big: "康莱德", lat: 31.2367, lng: 121.4717,
+    catch: "南京東路の西の端に立つ66階建ての高層ホテル。4日間の「家」。チェックイン15時・チェックアウト12時。",
+    fits: ["relax"], stay: "—", walk: 1, budget: 0, best: "いつでも", indoor: true,
+    who: ["ホテルのまわりの便利な店や、部屋での注意を知っておきたい人"] },
+  { id: "area-nanjing", link: "#/spot/nanjing", cat: "walk", badges: ["classic"], name: "南京東路と人民広場（解説）", zh: "南京东路 / 人民广场", big: "南京路", lat: 31.235, lng: 121.4695,
     catch: "ホテルの玄関を出たら、そこがもう上海の真ん中。100年前の繁華街と、競馬場の跡にできた広場を歩く。",
     fits: ["history", "shop", "photo", "local"], stay: "半日〜1日", walk: 2, budget: 0, best: "朝と夜", indoor: "half",
     who: ["旅の最初に、ホテルのまわりをしっかり知っておきたい人", "歩いて回れる範囲で、歴史も買い物も楽しみたい人"] },
-  { id: "area-lujiazui", link: "#/spot/lujiazui", cat: "sight", badges: ["classic"], name: "陸家嘴（解説）", zh: "陆家嘴", big: "陆家嘴", lat: 31.2380, lng: 121.5020,
+  { id: "area-lujiazui", link: "#/spot/lujiazui", cat: "sight", badges: ["classic"], name: "陸家嘴（解説）", zh: "陆家嘴", big: "陆家嘴", lat: 31.2385, lng: 121.5005,
     catch: "30年前は倉庫と工場と「ぬかるみの渡し場」。中国でいちばん高いビルの足元で、浦東開発の物語をたどる。",
     fits: ["history", "art", "photo", "night"], stay: "3時間〜", walk: 2, budget: 0, best: "朝（外灘を順光で）・夕方〜夜", indoor: "half",
     who: ["超高層ビルと開発の歴史に興味がある人", "外灘を対岸から見てみたい人"] },
-  { id: "area-xintiandi", link: "#/spot/xintiandi", cat: "walk", badges: ["classic"], name: "新天地と石庫門（解説）", zh: "新天地 / 石库门", big: "石库门", lat: 31.2196, lng: 121.4747,
+  { id: "area-xintiandi", link: "#/spot/xintiandi", cat: "walk", badges: ["classic"], name: "新天地と石庫門（解説）", zh: "新天地 / 石库门", big: "石库门", lat: 31.22193, lng: 121.47044,
     catch: "上海の人が100年暮らしてきた長屋「石庫門」。その街並みが、おしゃれな店と、中国の歴史の舞台に。",
     fits: ["history", "art", "food", "night"], stay: "2〜3時間", walk: 2, budget: 2, best: "昼〜夜", indoor: "half",
     who: ["上海の人の住まいの歴史を知りたい人", "夜にお酒や食事も楽しみたい人"] },
-  { id: "area-french", link: "#/spot/frenchconcession", cat: "walk", badges: ["classic"], name: "旧フランス租界（解説）", zh: "衡复风貌区", big: "梧桐", lat: 31.2080, lng: 121.4450,
+  { id: "area-french", link: "#/spot/frenchconcession", cat: "walk", badges: ["classic"], name: "旧フランス租界（解説）", zh: "衡复风貌区", big: "梧桐", lat: 31.21, lng: 121.4405,
     catch: "プラタナス並木の下に、洋館とアパートがどこまでも続く。歩くだけで100年前の上海に入り込める。",
     fits: ["art", "photo", "relax", "history"], stay: "半日", walk: 3, budget: 0, best: "朝〜夕方", indoor: false,
     who: ["並木道と洋館の散歩が好きな人", "カフェに寄りながらゆっくり歩きたい人"] },
-  { id: "area-hongkou", link: "#/spot/hongkou", cat: "walk", badges: ["hidden", "japan"], name: "北外灘と虹口（解説）", zh: "北外滩 / 虹口", big: "虹口", lat: 31.2500, lng: 121.4900,
+  { id: "area-hongkou", link: "#/spot/hongkou", cat: "walk", badges: ["hidden", "japan"], name: "北外灘と虹口（解説）", zh: "北外滩 / 虹口", big: "虹口", lat: 31.252, lng: 121.4855,
     catch: "かつて10万人近い日本人が暮らした街。港の記憶と、魯迅と、日本の痕跡を歩く。",
     fits: ["history", "local", "photo"], stay: "半日〜1日", walk: 3, budget: 0, best: "朝〜昼", indoor: false,
     who: ["日本と上海のつながりを現地で感じたい人", "観光地でない古い街を歩きたい人"] },
-  { id: "area-suzhou", link: "#/spot/suzhou", cat: "walk", badges: ["hidden"], name: "蘇州河（解説）", zh: "苏州河", big: "苏州河", lat: 31.2450, lng: 121.4760,
+  { id: "area-suzhou", link: "#/spot/suzhou", cat: "walk", badges: ["hidden"], name: "蘇州河（解説）", zh: "苏州河", big: "苏州河", lat: 31.247, lng: 121.4715,
     catch: "工場と倉庫の川が、遊歩道とアートの川に。上海の「再生」の物語。",
     fits: ["history", "photo", "relax"], stay: "1〜3時間", walk: 3, budget: 0, best: "朝・夕方", indoor: false,
     who: ["川沿いをのんびり歩きたい人", "上海の工業と環境の歴史に興味がある人"] },
-  { id: "area-yangpu", link: "#/spot/yangpu", cat: "walk", badges: ["hidden", "japan"], name: "楊浦浜江（解説）", zh: "杨浦滨江", big: "杨浦", lat: 31.2585, lng: 121.5400,
+  { id: "area-yangpu", link: "#/spot/yangpu", cat: "walk", badges: ["hidden", "japan"], name: "楊浦浜江（解説）", zh: "杨浦滨江", big: "杨浦", lat: 31.25256, lng: 121.52212,
     catch: "100年前の浄水場、発電所、紡績工場の岸壁を歩き、上海を動かしてきた力に触れる。",
     fits: ["history", "photo", "art", "relax"], stay: "2〜3時間", walk: 3, budget: 0, best: "昼〜夕方", indoor: false,
     who: ["工場や港の風景が好きな人", "人の少ない川沿いを歩きたい人"] },
@@ -100,13 +104,13 @@ const FINDS = [
     catch: "早享卡・回る順番・4人の1日プラン・冬の食べ物・帰り方まで。12/11を最高の1日にするための作戦。",
     fits: ["photo", "night", "food", "ride"], stay: "読むのに15分", walk: 1, budget: 0, best: "出発前に4人で", indoor: true,
     who: ["ディズニーを1日で効率よく回りたい人", "みさん・ちゃあと一緒に無理なく楽しみたい人"] },
-  { id: "disney", link: "#/spot/disney", cat: "sight", badges: ["dec"], name: "上海ディズニー（冬のフロスティバル）", zh: "上海迪士尼乐园", big: "迪士尼", lat: 31.1440, lng: 121.6570,
+  { id: "disney", link: "#/spot/disney", cat: "sight", badges: ["dec"], name: "上海ディズニー（冬のフロスティバル）", zh: "上海迪士尼乐园", big: "迪士尼", lat: 31.14625, lng: 121.65628,
     catch: "12月は冬のイベント期間。東京と見比べると「中国らしさ」があちこちに。",
     fits: ["photo", "night", "shop", "ride"], stay: "終日", walk: 3, budget: 3, best: "朝から夜まで", indoor: false,
     who: ["東京ディズニーが好きな人（違いを探すのが楽しい）", "スリル系の乗り物が好きな人"] },
 
   /* ===================== 見る ===================== */
-  { id: "park-hotel", more: "nanjing", cat: "sight", badges: ["hidden"], name: "国際飯店と「上海の原点」", zh: "国际饭店", big: "国际", lat: 31.2347, lng: 121.4712,
+  { id: "park-hotel", more: "nanjing", cat: "sight", badges: ["hidden"], name: "国際飯店と「上海の原点」", zh: "国际饭店", big: "国际", lat: 31.2356, lng: 121.46699,
     catch: "半世紀にわたって上海でいちばん高かったビル。ロビーには、上海の地図の「原点」の印がある。",
     fits: ["history", "art"], stay: "20〜30分", walk: 1, budget: 0, best: "いつでも", indoor: true,
     who: ["建築が好きな人", "人が知らない上海の豆知識を集めたい人", "ホテルの近くでさっと楽しみたい人"],
@@ -124,7 +128,7 @@ const FINDS = [
     ],
     tips: ["営業中のホテルなので、ロビーは静かに見学する。", "蝴蝶酥の行列は、平日の早い時間のほうが短いと言われる。"] },
 
-  { id: "history-museum", more: "nanjing", cat: "sight", badges: ["hidden"], name: "上海歴史博物館（旧競馬場）", zh: "上海历史博物馆", big: "历史馆", lat: 31.2330, lng: 121.4700,
+  { id: "history-museum", more: "nanjing", cat: "sight", badges: ["hidden"], name: "上海歴史博物館（旧競馬場）", zh: "上海历史博物馆", big: "历史馆", lat: 31.2333, lng: 121.4663,
     catch: "時計塔のある旧競馬場のクラブハウスが博物館に。開港前から今までの上海が一気にわかる。",
     fits: ["history", "art"], stay: "1〜1.5時間", walk: 1, budget: 0, best: "午前", indoor: true,
     who: ["この旅のテーマ「上海はなぜ大都市になったのか」を最初に頭に入れたい人", "雨の日の午前の過ごし方を探している人", "外灘を見る前の予習をしたい人"],
@@ -138,7 +142,7 @@ const FINDS = [
     ],
     tips: ["ホテルから歩いて10分ほど。旅の最初の午前におすすめ。", "パスポートでの予約・入館が必要な場合がある。"] },
 
-  { id: "museum-ppl", more: "nanjing", cat: "sight", badges: ["classic"], name: "上海博物館（人民広場館）", zh: "上海博物馆（人民广场馆）", big: "上博", lat: 31.2283, lng: 121.4757,
+  { id: "museum-ppl", more: "nanjing", cat: "sight", badges: ["classic"], name: "上海博物館（人民広場館）", zh: "上海博物馆（人民广场馆）", big: "上博", lat: 31.23016, lng: 121.471,
     catch: "ホテルから歩いて5分ほど。古代の器「鼎（かなえ）」の形をした建物で、今は世界の特別展が中心。",
     fits: ["art", "history"], stay: "1.5〜2時間", walk: 1, budget: 2, best: "午前", indoor: true,
     who: ["世界の文明や美術の特別展が好きな人", "ホテルの近くで雨の日を過ごしたい人"],
@@ -148,7 +152,7 @@ const FINDS = [
     points: ["人民広場から建物を眺めると、青銅の鼎の形がよくわかる。", "中国の古代美術をじっくり見たいなら、浦東の東館へ。"],
     tips: ["人気の特別展は予約がすぐ埋まる。行くと決めたら早めに予約。"] },
 
-  { id: "museum-east", cat: "sight", badges: ["hot"], name: "上海博物館 東館", zh: "上海博物馆东馆", big: "东馆", lat: 31.2270, lng: 121.5440,
+  { id: "museum-east", cat: "sight", badges: ["hot"], name: "上海博物館 東館", zh: "上海博物馆东馆", big: "东馆", lat: 31.22212, lng: 121.53436,
     catch: "2024年に浦東にできた巨大な新館。上海博物館の人気の「国宝」トップ10が、すべてここにそろう。",
     fits: ["art", "history"], stay: "2〜3時間", walk: 2, budget: 0, best: "午前", indoor: true,
     who: ["中国の歴史や美術が好きな人", "本物の国宝を自分の目で見たい人", "雨の日に1日しっかり楽しみたい人"],
@@ -163,7 +167,7 @@ const FINDS = [
     deep: [{ h: "回り方のコツ", html: `<p>すべて見ると半日では足りない。<b>青銅器 → 書・絵画 → 陶磁器</b>のように、見たい展示室を2〜3つに絞るのがおすすめ。ミュージアムショップの国宝グッズは、お土産にも人気。</p>` }],
     tips: ["館内はかなり歩く。途中のカフェで休憩を。"] },
 
-  { id: "pearl-museum", more: "lujiazui", cat: "sight", badges: ["hidden"], name: "東方明珠の地下「昔の上海」の展示", zh: "上海城市历史发展陈列馆", big: "明珠", lat: 31.2397, lng: 121.4998,
+  { id: "pearl-museum", more: "lujiazui", cat: "sight", badges: ["hidden"], name: "東方明珠の地下「昔の上海」の展示", zh: "上海城市历史发展陈列馆", big: "明珠", lat: 31.24195, lng: 121.49526,
     catch: "テレビ塔の足元に、租界時代の上海の街角を実物大で再現した展示がある。意外と知られていない。",
     fits: ["history", "photo"], stay: "約1時間", walk: 1, budget: 2, best: "いつでも", indoor: true,
     who: ["展望台に行くついでに、昔の上海も見てみたい人", "人形や模型で、昔の暮らしを見るのが好きな人"],
@@ -173,7 +177,7 @@ const FINDS = [
     points: ["路面電車や人力車、南京路の百貨店、石庫門の家の中など、写真でしか見られない昔の上海に入り込める。", "外灘の建物群の模型で、どこにどの銀行があったのかがわかる。"],
     tips: ["展望台に上るなら、このフロアも忘れずに。"] },
 
-  { id: "sky-views", more: "lujiazui", cat: "night", badges: ["classic"], name: "高い所から：上海タワー・環球金融中心・金茂", zh: "上海中心 / 上海环球金融中心 / 金茂大厦", big: "云端", lat: 31.2335, lng: 121.5055,
+  { id: "sky-views", more: "lujiazui", cat: "night", badges: ["classic"], name: "高い所から：上海タワー・環球金融中心・金茂", zh: "上海中心 / 上海环球金融中心 / 金茂大厦", big: "云端", lat: 31.23565, lng: 121.50125,
     catch: "陸家嘴に並ぶ3本の超高層ビルに、それぞれ展望台。どれに上るかで、見える上海が違う。",
     fits: ["photo", "night"], stay: "1〜1.5時間", walk: 1, budget: 3, best: "夕方（昼・夕焼け・夜景を一度に）", indoor: true,
     who: ["上海の街の広がりを一度に見たい人", "夜景が好きな人", "高い所が平気な人（ガラスの床もある）"],
@@ -190,7 +194,7 @@ const FINDS = [
     ],
     tips: ["霧や雲の日は何も見えない。当日の天気を見て決める。", "1つに絞るなら、景色は上海タワー、スリルは環球金融中心か金茂。"] },
 
-  { id: "postal-museum", more: "hongkou", cat: "sight", badges: ["hidden"], name: "上海郵政博物館と屋上庭園", zh: "上海邮政博物馆", big: "邮政", lat: 31.2448, lng: 121.4882,
+  { id: "postal-museum", more: "hongkou", cat: "sight", badges: ["hidden"], name: "上海郵政博物館と屋上庭園", zh: "上海邮政博物馆", big: "邮政", lat: 31.24641, lng: 121.48075,
     catch: "1924年の郵便局の建物。屋上から、蘇州河と陸家嘴を一度に見渡せる、知る人ぞ知る展望スポット。",
     fits: ["photo", "history", "art"], stay: "約1時間", walk: 1, budget: 0, best: "晴れた日の昼", indoor: "half",
     who: ["人が少ない展望スポットを探している人", "古い建物の中を見るのが好きな人", "無料で楽しめる場所を探している人"],
@@ -199,7 +203,7 @@ const FINDS = [
     points: ["屋上庭園からは、蘇州河の流れと陸家嘴の高層ビルが同じ景色に入る。外灘の喧騒が嘘のように静か。", "中国で最初の切手「大龍郵票」（1878年）など、郵便の歴史の展示もある。"],
     tips: ["今回の旅（水〜土）なら、12/9・10・12に行ける。金曜は休み。", "外灘源のクリスマスマーケットや北外灘とあわせて回りやすい。"] },
 
-  { id: "astor-house", more: "hongkou", cat: "sight", badges: ["hidden"], name: "浦江飯店（中国証券博物館）", zh: "浦江饭店 / 中国证券博物馆", big: "浦江", lat: 31.2455, lng: 121.4905,
+  { id: "astor-house", more: "hongkou", cat: "sight", badges: ["hidden"], name: "浦江飯店（中国証券博物館）", zh: "浦江饭店 / 中国证券博物馆", big: "浦江", lat: 31.24639, lng: 121.48663,
     catch: "上海で最初の西洋式ホテル。1990年、ここで新中国最初の証券取引所が開かれた。",
     fits: ["history", "art"], stay: "約1時間", walk: 1, budget: 0, best: "昼", indoor: true,
     who: ["金融や経済の歴史に興味がある人", "ドラマ『繁花』（90年代の上海の株の話）を見た人", "クラシックなホテルの建物が好きな人"],
@@ -209,7 +213,7 @@ const FINDS = [
     points: ["改革開放の象徴の一つが、租界時代のホテルの中で始まったという組み合わせが面白い。", "外白渡橋を渡ってすぐ。外灘から歩いて行ける。"],
     tips: ["開館日と時間は行く前に確認する。"] },
 
-  { id: "sihang", more: "suzhou", cat: "sight", badges: ["hidden", "japan"], name: "四行倉庫の記念館", zh: "四行仓库抗战纪念馆", big: "四行", lat: 31.2443, lng: 121.4720,
+  { id: "sihang", more: "suzhou", cat: "sight", badges: ["hidden", "japan"], name: "四行倉庫の記念館", zh: "四行仓库抗战纪念馆", big: "四行", lat: 31.2463, lng: 121.4675,
     catch: "1937年の戦いで、壁に無数の砲弾の跡が残る倉庫。中国では映画『八佰』で広く知られる。",
     fits: ["history"], stay: "約1時間", walk: 1, budget: 0, best: "昼", indoor: true,
     who: ["日中の近代史を、現地で静かに考えてみたい人", "蘇州河沿いを散歩するついでに立ち寄りたい人"],
@@ -220,7 +224,7 @@ const FINDS = [
     japan: "日本と中国の戦争の歴史を伝える場所。中国の人にとって大切な記念館なので、静かに見学したい。",
     tips: ["蘇河湾万象天地から歩いてすぐ。"] },
 
-  { id: "great-world", more: "nanjing", cat: "sight", badges: ["hidden"], name: "大世界（昔の娯楽の殿堂）", zh: "大世界", big: "大世界", lat: 31.2307, lng: 121.4790,
+  { id: "great-world", more: "nanjing", cat: "sight", badges: ["hidden"], name: "大世界（昔の娯楽の殿堂）", zh: "大世界", big: "大世界", lat: 31.22969, lng: 121.47469,
     catch: "1917年にできた、上海の人なら誰でも知る娯楽の殿堂。入口のゆがんだ鏡で4人で笑える。",
     fits: ["history", "local"], stay: "約1時間", walk: 1, budget: 1, best: "昼", indoor: true,
     who: ["昔の上海の庶民の楽しみを知りたい人", "ホテルの近くで、ちょっと変わった場所に行きたい人"],
@@ -230,7 +234,7 @@ const FINDS = [
     points: ["名物は入口の<b>ゆがんだ鏡（哈哈鏡）</b>。昔から、上海の人の記念写真の定番。", "白い塔のような建物そのものが、上海の近代建築の名作の一つ。"],
     tips: ["ホテルから南へ歩いて10分ほど。雲南南路の食べ歩きとセットで。"] },
 
-  { id: "jewish-museum", more: "hongkou", cat: "sight", badges: ["hidden", "japan"], name: "上海ユダヤ難民記念館", zh: "上海犹太难民纪念馆", big: "犹太", lat: 31.2558, lng: 121.5095,
+  { id: "jewish-museum", more: "hongkou", cat: "sight", badges: ["hidden", "japan"], name: "上海ユダヤ難民記念館", zh: "上海犹太难民纪念馆", big: "犹太", lat: 31.25615, lng: 121.50482,
     catch: "第二次世界大戦中、ナチスから逃れた約2万人のユダヤ人が上海で暮らした。その歴史を伝える旧シナゴーグ。",
     fits: ["history"], stay: "約1時間", walk: 1, budget: 1, best: "昼", indoor: true,
     who: ["第二次世界大戦の歴史に関心がある人", "上海の「国際都市」としての顔を知りたい人"],
@@ -241,7 +245,7 @@ const FINDS = [
     japan: "リトアニアで杉原千畝が出した「命のビザ」で日本を経由し、上海にたどり着いた人たちもいる。",
     tips: ["虹口の魯迅ゆかりの街とあわせて回れる。"] },
 
-  { id: "slaughterhouse", more: "hongkou", cat: "sight", badges: ["hidden"], name: "1933老場坊", zh: "1933老场坊", big: "1933", lat: 31.2565, lng: 121.4985,
+  { id: "slaughterhouse", more: "hongkou", cat: "sight", badges: ["hidden"], name: "1933老場坊", zh: "1933老场坊", big: "1933", lat: 31.2585, lng: 121.494,
     catch: "1933年の屠畜場の建物。牛の通り道だったらせんの坂と空中の通路が、迷路のような不思議な空間をつくる。",
     fits: ["photo", "art"], stay: "約1時間", walk: 2, budget: 0, best: "晴れた日の昼（光と影がきれい）", indoor: true,
     who: ["幾何学的な写真や、白黒写真が好きな人", "ちょっと変わった建築が好きな人"],
@@ -250,7 +254,7 @@ const FINDS = [
     points: ["牛が歩いた「牛道」と呼ばれるらせんの坂。", "コンクリートの柱と光と影がつくる模様。"],
     tips: ["中は暗く段差が多いので、足元に注意。"] },
 
-  { id: "psa", cat: "sight", badges: ["hot", "japan"], name: "上海当代芸術博物館とシャネルの図書館", zh: "上海当代艺术博物馆", big: "当代", lat: 31.2012, lng: 121.4995,
+  { id: "psa", cat: "sight", badges: ["hot", "japan"], name: "上海当代芸術博物館とシャネルの図書館", zh: "上海当代艺术博物馆", big: "当代", lat: 31.20306, lng: 121.4939,
     catch: "発電所を美術館にした、中国で初めての公立の現代美術館。3階には日本の建築家が設計した木の図書館ができた。",
     fits: ["art", "relax"], stay: "1.5〜2時間", walk: 1, budget: 0, best: "昼", indoor: true,
     who: ["現代アートや本が好きな人", "静かな場所で一息つきたい人", "日本人建築家の仕事を海外で見てみたい人"],
@@ -260,7 +264,7 @@ const FINDS = [
     japan: "図書館の設計は、日本の建築家・坂本一成さん。",
     tips: ["展覧会は有料のものもある。開館日・時間は行く前に確認。"] },
 
-  { id: "jingan-temple", cat: "sight", badges: ["classic"], name: "静安寺", zh: "静安寺", big: "静安寺", lat: 31.2235, lng: 121.4455,
+  { id: "jingan-temple", cat: "sight", badges: ["classic"], name: "静安寺", zh: "静安寺", big: "静安寺", lat: 31.22521, lng: 121.44079,
     catch: "高層ビルに囲まれて輝く、金色の屋根のお寺。三国時代にさかのぼると伝わる。",
     fits: ["photo", "history", "shop"], stay: "約45分", walk: 1, budget: 1, best: "昼〜夕方", indoor: false,
     who: ["「都会の中のお寺」の写真を撮りたい人", "南京西路の買い物ついでに立ち寄りたい人"],
@@ -269,7 +273,7 @@ const FINDS = [
     points: ["金色の屋根と、まわりのガラスの超高層ビルの対比が、今の上海を象徴する景色。", "お寺の足元が、南京西路に面したお店になっている。"],
     tips: ["お寺の向かいは大きなショッピング街。"] },
 
-  { id: "jade-buddha", cat: "sight", badges: ["classic"], name: "玉仏禅寺", zh: "玉佛禅寺", big: "玉佛", lat: 31.2425, lng: 121.4480,
+  { id: "jade-buddha", cat: "sight", badges: ["classic"], name: "玉仏禅寺", zh: "玉佛禅寺", big: "玉佛", lat: 31.24369, lng: 121.43978,
     catch: "ミャンマーから運ばれた、白い玉（ぎょく）でできた仏像が2体。精進料理の麺も名物。",
     fits: ["history", "relax", "food"], stay: "約1時間", walk: 1, budget: 1, best: "朝", indoor: "half",
     who: ["静かにお参りしたい人", "精進料理（素食）を試してみたい人"],
@@ -278,7 +282,7 @@ const FINDS = [
     points: ["玉仏の部屋は撮影が禁止されていることが多い。目でしっかり見る。", "お寺の食堂の精進料理の麺（素麺）が名物。肉を使わず、きのこや麩でうまみを出す。"],
     tips: ["朝はお参りの地元の人が多く、線香の煙が立ちこめる。"] },
 
-  { id: "propaganda", cat: "sight", badges: ["hidden"], name: "上海宣伝画芸術センター", zh: "上海宣传画艺术中心", big: "海报", lat: 31.2120, lng: 121.4385,
+  { id: "propaganda", cat: "sight", badges: ["hidden"], name: "上海宣伝画芸術センター", zh: "上海宣传画艺术中心", big: "海报", lat: 31.214, lng: 121.434,
     catch: "団地の地下に隠れた、中国のポスターの美術館。1950〜70年代の宣伝ポスターから、時代の空気が見える。",
     fits: ["art", "history"], stay: "約1時間", walk: 1, budget: 1, best: "昼", indoor: true,
     who: ["デザインやポスターが好きな人", "中国の近現代史を、別の角度から見てみたい人"],
@@ -287,7 +291,7 @@ const FINDS = [
     points: ["同じ「明るい未来」を描いたポスターでも、年代によってスローガンや描かれる人が変わっていく。"],
     tips: ["入口がとてもわかりにくい。団地の守衛さんに場所を聞く。"] },
 
-  { id: "people-park", more: "locallife", cat: "sight", badges: ["hidden"], name: "人民公園の「お見合いコーナー」", zh: "人民公园 相亲角", big: "相亲", lat: 31.2320, lng: 121.4710,
+  { id: "people-park", more: "locallife", cat: "sight", badges: ["hidden"], name: "人民公園の「お見合いコーナー」", zh: "人民公园 相亲角", big: "相亲", lat: 31.23401, lng: 121.4688,
     catch: "週末の人民公園で、親たちが子どものプロフィールを並べて結婚相手を探す。上海の「今」が見える独特の光景。",
     fits: ["local"], stay: "30分〜1時間", walk: 1, budget: 0, best: "土日の昼ごろから午後", indoor: false,
     who: ["今の中国の人の暮らしや価値観に興味がある人", "ホテルの近くでさっと立ち寄りたい人"],
@@ -297,7 +301,7 @@ const FINDS = [
     points: ["「戸籍」や「家」が条件に入るのは、日本との大きな違い。上海で暮らすことの大変さが見えてくる。"],
     tips: ["参加している人のプライバシーに配慮して、写真は控えめに。"] },
 
-  { id: "maglev", cat: "sight", badges: ["classic", "japan"], name: "リニアモーターカー", zh: "上海磁浮", big: "磁浮", lat: 31.2034, lng: 121.5571,
+  { id: "maglev", cat: "sight", badges: ["classic", "japan"], name: "リニアモーターカー", zh: "上海磁浮", big: "磁浮", lat: 31.2054, lng: 121.5526,
     catch: "世界で初めて営業運転を始めた高速リニア。約30kmを約8分、最高時速300kmで走る。",
     fits: ["ride"], stay: "約8分（＋乗り換え）", walk: 1, budget: 1, best: "空港に着いた日", indoor: true,
     who: ["乗り物が好きな人", "空港への移動まで楽しみたい人"],
@@ -308,7 +312,7 @@ const FINDS = [
     tips: ["荷物が多いと、龍陽路駅からの乗り換えが大変。タクシーと組み合わせると楽。"] },
 
   /* ===================== 街歩き ===================== */
-  { id: "nanjing-road", more: "nanjing", cat: "walk", badges: ["classic"], name: "南京東路の歩行者天国", zh: "南京东路步行街", big: "南京路", lat: 31.2370, lng: 121.4820,
+  { id: "nanjing-road", more: "nanjing", cat: "walk", badges: ["classic"], name: "南京東路の歩行者天国", zh: "南京东路步行街", big: "南京路", lat: 31.2385, lng: 121.479,
     catch: "ホテルの目の前から外灘まで続く歩行者天国。100年前は「中国一の繁華街」だった。",
     fits: ["shop", "photo", "night", "history"], stay: "1〜2時間", walk: 2, budget: 0, best: "ネオンがつく夜", indoor: false,
     who: ["最初の夜に、上海の熱気を感じたい人", "お土産をまとめて探したい人", "古い百貨店の建物を見たい人"],
@@ -323,7 +327,7 @@ const FINDS = [
     deep: [{ h: "四大百貨店の物語", html: `<p>先施と永安をつくったのは、オーストラリアで成功して帰ってきた広東出身の商人たち。値札をつけた「正札販売」や、屋上の遊園地など、当時としては新しい商売を上海に持ち込んだ。百貨店の屋上には庭園や劇場があり、買い物のついでに遊べる場所だった。南京路が「中国一」になった理由の一つは、こうした海外帰りの商人のアイデアだった。</p>` }],
     tips: ["外灘まで歩いて20〜25分。", "人が多いので、スリと「お茶しない？」の誘いに注意。"] },
 
-  { id: "fuzhou-road", more: "nanjing", cat: "walk", badges: ["hidden"], name: "福州路の書店街", zh: "福州路文化街", big: "福州路", lat: 31.2350, lng: 121.4830,
+  { id: "fuzhou-road", more: "nanjing", cat: "walk", badges: ["hidden"], name: "福州路の書店街", zh: "福州路文化街", big: "福州路", lat: 31.237, lng: 121.4785,
     catch: "100年以上前から本屋と出版社が集まる「文化街」。巨大な書店や文房具屋をのぞきながら歩ける。",
     fits: ["shop", "history", "local"], stay: "1時間ほど", walk: 2, budget: 0, best: "昼", indoor: "half",
     who: ["本屋や文房具屋が好きな人", "南京東路より落ち着いた通りを歩きたい人"],
@@ -332,7 +336,7 @@ const FINDS = [
     points: ["中国の本屋は、日本との売れ筋の違いを見るだけで面白い（日本の漫画や小説の中国語版も多い）。", "書道の筆や紙の店は、お土産探しにも向く。"],
     tips: ["ホテルから歩いて5〜10分。南京東路と並行しているので、行きと帰りで道を変えられる。"] },
 
-  { id: "huanghe-road", more: "nanjing", cat: "food", badges: ["hot"], name: "黄河路美食街（ドラマ『繁花』）", zh: "黄河路美食街", big: "黄河路", lat: 31.2368, lng: 121.4703,
+  { id: "huanghe-road", more: "nanjing", cat: "food", badges: ["hot"], name: "黄河路美食街（ドラマ『繁花』）", zh: "黄河路美食街", big: "黄河路", lat: 31.2378, lng: 121.4668,
     catch: "ウォン・カーウァイ監督のドラマ『繁花』で一躍有名に。ホテルから歩ける、90年代上海の熱気が残る美食街。",
     fits: ["food", "night", "local"], stay: "1.5〜2時間", walk: 1, budget: 2, best: "夜", indoor: "half",
     who: ["ドラマ『繁花』を見た人（見ていない人も、見てから行くと倍楽しい）", "にぎやかな夜ごはんが好きな人", "ホテルの近くで夕食を済ませたい日"],
@@ -346,7 +350,7 @@ const FINDS = [
     deep: [{ h: "ドラマ『繁花』って？", html: `<p>原作は、上海出身の作家・金宇澄の小説（2015年に中国の権威ある文学賞「茅盾文学賞」を受賞）。ドラマは、主演の胡歌（フー・ゴー）が演じる青年が、90年代の上海の株や貿易の世界でのし上がっていく物語。外灘の和平飯店、黄河路、進賢路などが舞台で、上海の人の言葉（上海語）や食べ物がたっぷり出てくる。見ておくと、街歩きが何倍も楽しくなる。</p>` }],
     tips: ["人気店は夕方早めに。「大衆点評」アプリで評価と待ち時間を確認できる。"] },
 
-  { id: "wukang", more: "frenchconcession", cat: "walk", badges: ["classic"], name: "武康路と武康大楼", zh: "武康路 / 武康大楼", big: "武康路", lat: 31.2052, lng: 121.4385,
+  { id: "wukang", more: "frenchconcession", cat: "walk", badges: ["classic"], name: "武康路と武康大楼", zh: "武康路 / 武康大楼", big: "武康路", lat: 31.20626, lng: 121.43373,
     catch: "プラタナス並木と洋館が続く、旧フランス租界でいちばん絵になる通り。端には船のような形のマンションが立つ。",
     fits: ["photo", "art", "history", "relax"], stay: "1.5〜2時間", walk: 3, budget: 0, best: "午前か午後の明るい時間", indoor: false,
     who: ["並木道をのんびり散歩したい人", "洋館や古い建物の写真が好きな人", "途中でカフェに寄りながら歩きたい人"],
@@ -360,7 +364,7 @@ const FINDS = [
     ],
     tips: ["武康大楼の前は撮影する人で混む。車道に出ないよう注意。", "安福路まで歩いてすぐ。"] },
 
-  { id: "anfu", more: "frenchconcession", cat: "walk", badges: ["hot"], name: "安福路", zh: "安福路", big: "安福路", lat: 31.2125, lng: 121.4440,
+  { id: "anfu", more: "frenchconcession", cat: "walk", badges: ["hot"], name: "安福路", zh: "安福路", big: "安福路", lat: 31.2145, lng: 121.4395,
     catch: "上海のおしゃれな若者が集まる通り。小さなカフェ、古着、話題のブランドの店が並ぶ。",
     fits: ["shop", "photo", "local"], stay: "約1時間", walk: 2, budget: 1, best: "午後", indoor: false,
     who: ["上海の若者のファッションや流行を見てみたい人", "小さな店をのぞきながら歩くのが好きな人"],
@@ -369,7 +373,7 @@ const FINDS = [
     points: ["歩いている人のファッションを見るだけでも、「今の上海」がわかる。", "劇場の「上海話劇芸術センター」もこの通りにある。"],
     tips: ["武康路とセットで、半日の街歩きに。"] },
 
-  { id: "columbia", more: "frenchconcession", cat: "walk", badges: ["hidden", "japan"], name: "上生・新所と上海蔦屋書店", zh: "上生·新所", big: "上生", lat: 31.2062, lng: 121.4225,
+  { id: "columbia", more: "frenchconcession", cat: "walk", badges: ["hidden", "japan"], name: "上生・新所と上海蔦屋書店", zh: "上生·新所", big: "上生", lat: 31.21016, lng: 121.42351,
     catch: "1920年代の外国人クラブとプールが、カフェと書店のある公園のような街に。日本の蔦屋書店もここにある。",
     fits: ["art", "relax", "photo", "shop"], stay: "1〜1.5時間", walk: 2, budget: 0, best: "昼", indoor: "half",
     who: ["人混みを避けてゆっくり散歩したい人", "建築好き", "日本の本屋との違いを見つけてみたい人"],
@@ -379,7 +383,7 @@ const FINDS = [
     japan: "日本の蔦屋書店の上海の店がある。日本の店と、本の並べ方や品ぞろえの違いを比べると面白い。",
     tips: ["中心部から少し離れているので、タクシーで。"] },
 
-  { id: "zhangyuan", cat: "walk", badges: ["hot"], name: "張園（石庫門の街並み）", zh: "张园", big: "张园", lat: 31.2290, lng: 121.4605,
+  { id: "zhangyuan", cat: "walk", badges: ["hot"], name: "張園（石庫門の街並み）", zh: "张园", big: "张园", lat: 31.231, lng: 121.456,
     catch: "1882年からの石庫門の住宅街が、有名ブランドの並ぶ街に生まれ変わった。2026年6月には東側の一部も開いた。",
     fits: ["shop", "art", "photo", "history"], stay: "約1時間", walk: 2, budget: 0, best: "昼", indoor: false,
     who: ["石庫門の住まいのつくりを見たい人", "ブランドの店をのぞくのが好きな人"],
@@ -391,7 +395,7 @@ const FINDS = [
 <p>台所の上の小さな部屋「亭子間」は家賃が安く、若い作家たちがよく借りて暮らした。そこから生まれた作品は「亭子間文学」と呼ばれる。</p>` }],
     tips: ["高級ショッピング街の南京西路のすぐ横。"] },
 
-  { id: "xintiandi", more: "xintiandi", cat: "walk", badges: ["classic"], name: "新天地", zh: "新天地", big: "新天地", lat: 31.2196, lng: 121.4747,
+  { id: "xintiandi", more: "xintiandi", cat: "walk", badges: ["classic"], name: "新天地", zh: "新天地", big: "新天地", lat: 31.22193, lng: 121.47044,
     catch: "石庫門の街並みを、レストランやバーに作り替えた「古い×新しい」の元祖。",
     fits: ["night", "food", "history", "shop"], stay: "1〜2時間", walk: 2, budget: 2, best: "夕方〜夜", indoor: "half",
     who: ["夜にお酒や食事をゆっくり楽しみたい人", "石庫門の街並みを手軽に見たい人", "中国の近代史に関心がある人"],
@@ -400,7 +404,7 @@ const FINDS = [
     points: ["すぐそばに、1921年に中国共産党の第1回全国代表大会が開かれた建物（中共一大会址）と記念館がある。中国の人にとって特別な場所で、見学は無料・予約制。", "夜はバーやレストランがにぎわう。"],
     tips: ["ホテルからタクシーで約10分。"] },
 
-  { id: "tianzifang", more: "xintiandi", cat: "walk", badges: ["classic"], name: "田子坊", zh: "田子坊", big: "田子坊", lat: 31.2085, lng: 121.4690,
+  { id: "tianzifang", more: "xintiandi", cat: "walk", badges: ["classic"], name: "田子坊", zh: "田子坊", big: "田子坊", lat: 31.21034, lng: 121.4641,
     catch: "細い路地にお店や工房がぎっしり。迷路のような石庫門の路地歩き。",
     fits: ["shop", "local", "photo"], stay: "1〜1.5時間", walk: 2, budget: 1, best: "昼", indoor: false,
     who: ["小さな雑貨屋を探すのが好きな人", "迷路のような路地を歩くのが好きな人"],
@@ -409,7 +413,7 @@ const FINDS = [
     points: ["観光客向けの店が多いので、奥の路地まで入ると生活の気配が残る。"],
     tips: ["人が多い。スリに注意。"] },
 
-  { id: "suhe", more: "suzhou", cat: "walk", badges: ["hot"], name: "蘇河湾万象天地", zh: "苏河湾万象天地", big: "苏河湾", lat: 31.2448, lng: 121.4785,
+  { id: "suhe", more: "suzhou", cat: "walk", badges: ["hot"], name: "蘇河湾万象天地", zh: "苏河湾万象天地", big: "苏河湾", lat: 31.2468, lng: 121.474,
     catch: "蘇州河沿いの公園の地下に広がる新しいショッピング街。修復した石庫門と、建て直した天后宮が並ぶ。",
     fits: ["shop", "photo", "relax"], stay: "約1時間", walk: 2, budget: 0, best: "昼〜夕方", indoor: "half",
     who: ["新しい上海の商業施設を見てみたい人", "川沿いを散歩したい人"],
@@ -419,7 +423,7 @@ const FINDS = [
     points: ["天后宮は、航海の女神・媽祖をまつる。港町・上海らしい建物。", "すぐ西に、1937年の戦いの跡が残る四行倉庫の記念館がある。"],
     tips: ["ホテルから北へ歩いて20分ほど。"] },
 
-  { id: "thousand-trees", more: "suzhou", cat: "walk", badges: ["hot"], name: "天安千樹（1000 Trees）と M50", zh: "天安千树 / M50", big: "千树", lat: 31.2475, lng: 121.4505,
+  { id: "thousand-trees", more: "suzhou", cat: "walk", badges: ["hot"], name: "天安千樹（1000 Trees）と M50", zh: "天安千树 / M50", big: "千树", lat: 31.2495, lng: 121.446,
     catch: "1000本の木が柱の上に植えられた、山のような商業ビル。隣は紡績工場を改装したアート地区「M50」。",
     fits: ["art", "photo", "shop"], stay: "約1.5時間", walk: 2, budget: 0, best: "昼", indoor: "half",
     who: ["建築好き・写真好き", "ギャラリー巡りをしたい人"],
@@ -429,7 +433,7 @@ const FINDS = [
     points: ["蘇州河の遊歩道から見上げると、建物全体の形がわかる。"],
     tips: ["ホテルからタクシーで約15分。"] },
 
-  { id: "hongkou-luxun", more: "hongkou", cat: "walk", badges: ["hidden", "japan"], name: "虹口：魯迅と内山書店の街", zh: "鲁迅故居 / 内山书店旧址", big: "鲁迅", lat: 31.2685, lng: 121.4865,
+  { id: "hongkou-luxun", more: "hongkou", cat: "walk", badges: ["hidden", "japan"], name: "虹口：魯迅と内山書店の街", zh: "鲁迅故居 / 内山书店旧址", big: "鲁迅", lat: 31.26823, lng: 121.47993,
     catch: "中国の文豪・魯迅と、彼を支えた日本人の書店主・内山完造。日本とのつながりがいちばん濃い街。",
     fits: ["history", "local", "photo"], stay: "2〜3時間", walk: 3, budget: 1, best: "朝〜昼", indoor: "half",
     who: ["魯迅や、日本と中国の近代史に興味がある人", "観光地ではない古い街並みを歩きたい人"],
@@ -446,7 +450,7 @@ const FINDS = [
     japan: "魯迅と内山完造の友情は、日中の民間交流の象徴として、今も両国で語られている。",
     tips: ["ユダヤ難民記念館や1933老場坊とあわせて、虹口で半日。"] },
 
-  { id: "yangpu", more: "yangpu", cat: "walk", badges: ["hidden", "japan"], name: "楊浦浜江（工業遺産の川辺）", zh: "杨浦滨江", big: "杨浦", lat: 31.2585, lng: 121.5400,
+  { id: "yangpu", more: "yangpu", cat: "walk", badges: ["hidden", "japan"], name: "楊浦浜江（工業遺産の川辺）", zh: "杨浦滨江", big: "杨浦", lat: 31.25256, lng: 121.52212,
     catch: "100年前の工場や発電所、浄水場が並んでいた川岸が遊歩道に。上海が「工業の街」だったことを体で感じる場所。",
     fits: ["history", "photo", "art", "relax"], stay: "約2時間", walk: 3, budget: 0, best: "昼〜夕方", indoor: false,
     who: ["工場や港の風景が好きな人", "旅のテーマ（上海が工業の街だったこと）を体で感じたい人", "人の少ない川沿いを歩きたい人"],
@@ -461,7 +465,7 @@ const FINDS = [
     japan: "戦前の楊樹浦には、日本の会社が経営する紡績工場（在華紡）がいくつもあった。紡績工場の建物を改装した施設も川辺に残る。",
     tips: ["冬の川風は冷たい。広いので、歩く区間を決めて行く。"] },
 
-  { id: "west-bund", cat: "walk", badges: ["hot"], name: "西岸（徐匯浜江）の美術館と川辺", zh: "西岸 徐汇滨江", big: "西岸", lat: 31.1700, lng: 121.4610,
+  { id: "west-bund", cat: "walk", badges: ["hot"], name: "西岸（徐匯浜江）の美術館と川辺", zh: "西岸 徐汇滨江", big: "西岸", lat: 31.18589, lng: 121.46017,
     catch: "飛行場と石炭の埠頭だった川辺が、美術館の並ぶ「アートの川岸」に。2026年も新しい景色が増えている。",
     fits: ["art", "photo", "relax"], stay: "2〜3時間", walk: 3, budget: 1, best: "午後〜夕方", indoor: "half",
     who: ["美術館をはしごしたい人", "夕焼けの川辺を歩きたい人"],
@@ -474,7 +478,7 @@ const FINDS = [
     ],
     tips: ["夕暮れの川辺がきれい。"] },
 
-  { id: "qibao", cat: "walk", badges: ["hidden"], name: "七宝古鎮（時間があれば）", zh: "七宝古镇", big: "七宝", lat: 31.1560, lng: 121.3500,
+  { id: "qibao", cat: "walk", badges: ["hidden"], name: "七宝古鎮（時間があれば）", zh: "七宝古镇", big: "七宝", lat: 31.15364, lng: 121.35014,
     catch: "地下鉄で行ける、運河と石橋の古い町。水郷の雰囲気と屋台の食べ歩きを手軽に。",
     fits: ["food", "photo", "local"], stay: "2〜3時間（＋移動）", walk: 2, budget: 1, best: "平日の昼", indoor: false,
     who: ["水郷の雰囲気を手軽に味わいたい人", "屋台の食べ歩きが好きな人"],
@@ -483,7 +487,7 @@ const FINDS = [
     points: ["名物の食べ物：もちもちの団子（湯団）、蒸し菓子（方糕）。", "コオロギ相撲の文化を紹介する小さな博物館もある。"],
     tips: ["週末は混む。今回は時間に余裕があるときの候補。"] },
 
-  { id: "ferry", more: "lujiazui", cat: "walk", badges: ["hidden"], name: "黄浦江の渡し船", zh: "黄浦江轮渡", big: "渡轮", lat: 31.2330, lng: 121.4965,
+  { id: "ferry", more: "lujiazui", cat: "walk", badges: ["hidden"], name: "黄浦江の渡し船", zh: "黄浦江轮渡", big: "渡轮", lat: 31.23466, lng: 121.48896,
     catch: "地元の人の通勤の足。数元・数分で、川の真ん中から両岸を眺められる「いちばん安いクルーズ」。",
     fits: ["local", "ride", "photo"], stay: "約15分", walk: 1, budget: 1, best: "いつでも", indoor: "half",
     who: ["数元で川を渡る体験をしてみたい人", "地元の人の通勤の風景を見たい人"],
@@ -502,7 +506,7 @@ const FINDS = [
     tips: ["出発前に「落叶不扫 2026」で検索して、最新の一覧を確認する。"] },
 
   /* ===================== 食べる ===================== */
-  { id: "benbang", cat: "food", badges: ["classic"], name: "老舗の上海料理（本帮菜）", zh: "本帮菜", big: "本帮菜", lat: 31.2338, lng: 121.4810,
+  { id: "benbang", cat: "food", badges: ["classic"], name: "老舗の上海料理（本帮菜）", zh: "本帮菜", big: "本帮菜", lat: 31.2358, lng: 121.4765,
     catch: "醤油と砂糖でこってり甘辛い「濃油赤醤」が上海の味。150年続く老舗で、本場の上海料理を。",
     fits: ["food", "history"], stay: "約1.5時間", walk: 1, budget: 2, best: "夜", indoor: true,
     who: ["本場の上海料理を1回はちゃんと食べたい人", "4人で大皿を囲んで、いろいろ少しずつ食べたい人"],
@@ -546,7 +550,7 @@ const FINDS = [
     ],
     tips: ["価格や評価はSNSの情報が中心なので、行く前に「大衆点評」アプリで最新の情報を確認する。", "行列の店は、開店直後か14時ごろなど、食事どきを外すと入りやすい。"] },
 
-  { id: "shengjian", cat: "food", badges: ["classic"], name: "生煎：小楊生煎と大壺春", zh: "生煎", big: "生煎", lat: 31.2390, lng: 121.4860,
+  { id: "shengjian", cat: "food", badges: ["classic"], name: "生煎：小楊生煎と大壺春", zh: "生煎", big: "生煎", lat: 31.241, lng: 121.4815,
     catch: "底はカリッ、中はジュワッ。上海の人のソウルフードの焼き小籠包を、2つの流派で食べ比べ。",
     fits: ["food", "local"], stay: "約30分", walk: 1, budget: 1, best: "朝〜昼", indoor: true,
     who: ["朝ごはんや小腹がすいたときに、さっと本場の味を楽しみたい人", "食べ比べが好きな人"],
@@ -560,7 +564,7 @@ const FINDS = [
     ],
     tips: ["中のスープがとても熱い。まず少しかじって湯気を逃がす。"] },
 
-  { id: "xiaolongbao", cat: "food", badges: ["classic"], name: "小籠包めぐり", zh: "小笼包 / 汤包", big: "小笼", lat: 31.2370, lng: 121.4700,
+  { id: "xiaolongbao", cat: "food", badges: ["classic"], name: "小籠包めぐり", zh: "小笼包 / 汤包", big: "小笼", lat: 31.238, lng: 121.4668,
     catch: "豫園の老舗から、ホテル近くの地元の名店まで。「小籠包」と「湯包」の違いも食べて確かめる。",
     fits: ["food", "local"], stay: "1軒30分〜", walk: 1, budget: 2, best: "昼", indoor: true,
     who: ["小籠包を何軒か食べ比べたい人", "上海蟹のみそ入りの小籠包を試したい人"],
@@ -574,7 +578,7 @@ const FINDS = [
     points: ["12月は上海蟹の季節。「蟹粉小籠」（蟹みそ入り）があればぜひ。", "小籠包にはパクチーや八角はふつう使われない。安心して食べられる料理の一つ。"],
     tips: ["食べ方：レンゲにのせる → 皮を少しかじる → スープを吸う → 黒酢と針生姜をのせて食べる。"] },
 
-  { id: "yunnan-rd", more: "nanjing", cat: "food", badges: ["hidden"], name: "雲南南路の食べ歩き", zh: "云南南路美食街", big: "云南路", lat: 31.2308, lng: 121.4793,
+  { id: "yunnan-rd", more: "nanjing", cat: "food", badges: ["hidden"], name: "雲南南路の食べ歩き", zh: "云南南路美食街", big: "云南路", lat: 31.2328, lng: 121.4748,
     catch: "人民広場の南、地元の人が通う老舗の軽食（小吃）の店が並ぶ通り。",
     fits: ["food", "local"], stay: "約1時間", walk: 1, budget: 1, best: "昼〜夜", indoor: "half",
     who: ["地元の人に混ざって、安くておいしいものを食べたい人", "いろいろ少しずつ食べたい人"],
@@ -624,7 +628,7 @@ const FINDS = [
     ],
     tips: ["麺の店は昼すぎに売り切れや閉店になることがある。"] },
 
-  { id: "hairy-crab", cat: "food", badges: ["dec", "japan"], name: "上海蟹（大閘蟹）", zh: "大闸蟹", big: "大闸蟹", lat: 31.2378, lng: 121.4878,
+  { id: "hairy-crab", cat: "food", badges: ["dec", "japan"], name: "上海蟹（大閘蟹）", zh: "大闸蟹", big: "大闸蟹", lat: 31.2398, lng: 121.4833,
     catch: "秋から冬が旬。12月は季節の終わりに近いがまだ楽しめる。蟹みそ入りの小籠包や麺でも味わえる。",
     fits: ["food"], stay: "約1.5時間", walk: 1, budget: 3, best: "夜", indoor: true,
     who: ["旬の高級食材を味わいたい人", "時間をかけてゆっくり食事をしたい人"],
@@ -686,7 +690,7 @@ const FINDS = [
     points: ["自分のカップを持っていくと値引きになる仕組みで知られる（要確認）。"],
     tips: ["朝は出勤前の人で行列。"] },
 
-  { id: "roastery", cat: "cafe", badges: ["classic"], name: "スターバックス リザーブ ロースタリー上海", zh: "星巴克臻选上海烘焙工坊", big: "星巴克", lat: 31.2292, lng: 121.4588,
+  { id: "roastery", cat: "cafe", badges: ["classic"], name: "スターバックス リザーブ ロースタリー上海", zh: "星巴克臻选上海烘焙工坊", big: "星巴克", lat: 31.2312, lng: 121.4543,
     catch: "焙煎工場をまるごと店にした巨大なスターバックス。住所は南京西路789号（ホテルは南京東路789号）。",
     fits: ["relax", "shop"], stay: "約1時間", walk: 1, budget: 2, best: "午前（混む前）", indoor: true,
     who: ["コーヒーやスタバが好きな人", "雨の日にゆっくり座りたい人"],
@@ -695,7 +699,7 @@ const FINDS = [
     points: ["焙煎の様子を、駅の発車案内のようなパタパタ式の掲示板が知らせる。", "上海限定のグッズもある。"],
     tips: ["混むので午前中がおすすめ。"] },
 
-  { id: "songfang", more: "frenchconcession", cat: "cafe", badges: ["hidden"], name: "宋芳茶館（青い缶のお茶）", zh: "宋芳茶馆", big: "宋芳", lat: 31.2105, lng: 121.4590,
+  { id: "songfang", more: "frenchconcession", cat: "cafe", badges: ["hidden"], name: "宋芳茶館（青い缶のお茶）", zh: "宋芳茶馆", big: "宋芳", lat: 31.2125, lng: 121.4545,
     catch: "フランスと中国の美しさが混ざった、旧フランス租界の小さな茶館。青い茶缶はお土産としても人気。",
     fits: ["relax", "shop"], stay: "約45分", walk: 1, budget: 2, best: "午後", indoor: true,
     who: ["静かな場所でお茶を飲みたい人", "おしゃれな茶缶をお土産にしたい人"],
@@ -704,7 +708,7 @@ const FINDS = [
     points: ["鮮やかな青の茶缶が名物で、中身を選んで詰めてもらえる。"],
     tips: ["武康路・安福路の散歩の途中に寄りやすい。"] },
 
-  { id: "huxinting", cat: "cafe", badges: ["classic"], name: "湖心亭茶楼", zh: "湖心亭茶楼", big: "湖心亭", lat: 31.2270, lng: 121.4925,
+  { id: "huxinting", cat: "cafe", badges: ["classic"], name: "湖心亭茶楼", zh: "湖心亭茶楼", big: "湖心亭", lat: 31.22866, lng: 121.48742,
     catch: "豫園の池の真ん中に浮かぶ、上海に残る最も古い茶館の一つ。九曲橋を渡って入る。",
     fits: ["relax", "history"], stay: "約1時間", walk: 1, budget: 2, best: "朝〜昼", indoor: true,
     who: ["豫園の散策の途中でひと休みしたい人", "雰囲気のある場所で中国茶を飲みたい人"],
@@ -714,7 +718,7 @@ const FINDS = [
     tips: ["混む昼前より、開店直後が落ち着いている。"] },
 
   /* ===================== お土産 ===================== */
-  { id: "butterfly", cat: "souvenir", badges: ["classic"], name: "国際飯店の蝴蝶酥", zh: "国际饭店 蝴蝶酥", big: "蝴蝶酥", lat: 31.2349, lng: 121.4708,
+  { id: "butterfly", cat: "souvenir", badges: ["classic"], name: "国際飯店の蝴蝶酥", zh: "国际饭店 蝴蝶酥", big: "蝴蝶酥", lat: 31.2358, lng: 121.4668,
     catch: "「上海のお土産といえばこれ」と言われる、サクサクのバタフライパイ。上海の人も並んで買う。",
     fits: ["shop", "food"], stay: "行列しだい", walk: 1, budget: 1, best: "平日の早い時間", indoor: true,
     who: ["配りやすい定番のお土産がほしい人", "甘いものが好きな人"],
@@ -753,7 +757,7 @@ const FINDS = [
     ],
     tips: ["店の場所は高徳地図で「上海礼物」と検索。"] },
 
-  { id: "diyi-shipin", more: "nanjing", cat: "souvenir", badges: ["classic"], name: "第一食品（老舗のお菓子がそろう店）", zh: "第一食品商店", big: "第一", lat: 31.2361, lng: 121.4787,
+  { id: "diyi-shipin", more: "nanjing", cat: "souvenir", badges: ["classic"], name: "第一食品（老舗のお菓子がそろう店）", zh: "第一食品商店", big: "第一", lat: 31.2381, lng: 121.4742,
     catch: "ホテルから歩いてすぐ。上海の老舗のお菓子が一か所でそろう、お土産探しの本拠地。",
     fits: ["shop", "food"], stay: "30分〜1時間", walk: 1, budget: 1, best: "いつでも", indoor: true,
     who: ["お土産をまとめて買いたい人", "ホテルの近くで済ませたい人"],
@@ -765,7 +769,7 @@ const FINDS = [
     ],
     tips: ["自分用の味見には、まず小さい袋で。"] },
 
-  { id: "shendacheng", more: "nanjing", cat: "souvenir", badges: ["classic"], name: "沈大成（上海の団子とお菓子）", zh: "沈大成", big: "沈大成", lat: 31.2366, lng: 121.4805,
+  { id: "shendacheng", more: "nanjing", cat: "souvenir", badges: ["classic"], name: "沈大成（上海の団子とお菓子）", zh: "沈大成", big: "沈大成", lat: 31.2386, lng: 121.476,
     catch: "1875年創業。もちもちの上海の団子と、お土産に人気のゴマとピーナッツのお菓子。",
     fits: ["food", "shop"], stay: "約20分", walk: 1, budget: 1, best: "昼", indoor: true,
     who: ["和菓子が好きな人（中国の団子と比べると面白い）", "ホテルの近くで甘いものを食べたい人"],
@@ -774,7 +778,7 @@ const FINDS = [
     points: ["条頭糕（細長いもち菓子・中にあん）、双醸団（あんとゴマあんの二層の団子）。", "持ち帰りには「花生芝麻酥糖」（ピーナッツとゴマのサクサクのお菓子）。"],
     tips: ["もち菓子はその日のうちに食べる。"] },
 
-  { id: "museum-goods", cat: "souvenir", badges: ["hot"], name: "博物館の国宝グッズ", zh: "上博文创", big: "文创", lat: 31.2283, lng: 121.4757,
+  { id: "museum-goods", cat: "souvenir", badges: ["hot"], name: "博物館の国宝グッズ", zh: "上博文创", big: "文创", lat: 31.23016, lng: 121.471,
     catch: "国宝をモチーフにした冷蔵庫マグネットやライトが大人気。博物館のショップは隠れたお土産スポット。",
     fits: ["shop", "art"], stay: "約30分", walk: 1, budget: 2, best: "いつでも", indoor: true,
     who: ["美術館グッズが好きな人", "かさばらないお土産がほしい人"],
@@ -783,7 +787,7 @@ const FINDS = [
     points: ["青銅器「大克鼎」のマグネット。", "宋の時代の織物の絵「蓮塘乳鴨図」のナイトライト（98元）は「上海礼物TOP30」にも選ばれた。"],
     tips: ["人民広場館はホテルから歩いて5分ほど。"] },
 
-  { id: "tea-city", cat: "souvenir", badges: ["hidden"], name: "天山茶城（お茶の市場）", zh: "天山茶城", big: "茶城", lat: 31.2105, lng: 121.4180,
+  { id: "tea-city", cat: "souvenir", badges: ["hidden"], name: "天山茶城（お茶の市場）", zh: "天山茶城", big: "茶城", lat: 31.21478, lng: 121.40709,
     catch: "300軒以上のお茶と茶器の店が集まる巨大な市場。試飲しながら、自分の好きなお茶を探せる。",
     fits: ["shop", "local"], stay: "1〜1.5時間", walk: 2, budget: 2, best: "昼", indoor: true,
     who: ["お茶が好きな人", "試飲しながらじっくり選びたい人", "雨の日の買い物先を探している人"],
@@ -820,7 +824,7 @@ const FINDS = [
     points: ["中国のサイズ表記（例：40＝約25cm）なので、試し履きをする。"],
     tips: ["偽物も多いので、公式の店で。"] },
 
-  { id: "duoyunxuan", cat: "souvenir", badges: ["classic"], name: "朵雲軒（文房具とお香）", zh: "朵云轩", big: "朵云轩", lat: 31.2384, lng: 121.4850,
+  { id: "duoyunxuan", cat: "souvenir", badges: ["classic"], name: "朵雲軒（文房具とお香）", zh: "朵云轩", big: "朵云轩", lat: 31.2404, lng: 121.4805,
     catch: "1900年創業の書画と文房具の老舗。筆や便箋、上品なお香は、目上の人へのお土産に。",
     fits: ["shop", "art"], stay: "約30分", walk: 1, budget: 2, best: "いつでも", indoor: true,
     who: ["書道や文房具が好きな人", "目上の人へのきちんとしたお土産を探している人"],
@@ -845,7 +849,7 @@ const FINDS = [
     tips: ["<b>肉を使った食品（ジャーキー、ソーセージ、肉入りの月餅や肉でんぶなど）は日本に持ち込めない。</b>原材料を確認する。", "果物や生の野菜も持ち込めない。"] },
 
   /* ===================== 夜 ===================== */
-  { id: "north-bund", more: "hongkou", cat: "night", badges: ["hidden"], name: "北外灘の川沿い（夜景の穴場）", zh: "北外滩滨江", big: "北外滩", lat: 31.2488, lng: 121.4975,
+  { id: "north-bund", more: "hongkou", cat: "night", badges: ["hidden"], name: "北外灘の川沿い（夜景の穴場）", zh: "北外滩滨江", big: "北外滩", lat: 31.2508, lng: 121.493,
     catch: "外灘の人混みから少し北へ。すいている川沿いから、外灘とは違う角度の陸家嘴の夜景を眺められる。",
     fits: ["photo", "night", "relax"], stay: "約1時間", walk: 2, budget: 0, best: "夜", indoor: false,
     who: ["人混みを避けて夜景を見たい人", "写真をゆっくり撮りたい人"],
@@ -868,7 +872,7 @@ const FINDS = [
     points: ["外灘側のバーは「陸家嘴を見る」、浦東側のバーは「外灘を見る」。どちらの景色を見たいかで選ぶ。"],
     tips: ["営業状況や予約方法は、行く前に各ホテルのサイトで確認する（2026年の営業は未確認）。", "テラス席は冬はかなり寒い。"] },
 
-  { id: "bund-xmas", cat: "night", badges: ["dec"], name: "外灘源のクリスマスマーケット", zh: "外滩源 圣诞市集", big: "圣诞", lat: 31.2440, lng: 121.4890,
+  { id: "bund-xmas", cat: "night", badges: ["dec"], name: "外灘源のクリスマスマーケット", zh: "外滩源 圣诞市集", big: "圣诞", lat: 31.24439, lng: 121.48416,
     catch: "赤レンガの洋館が並ぶ外灘の裏通りに、ドイツ式の屋台が並ぶ。12月の夜だけのお楽しみ。",
     fits: ["night", "food", "photo", "shop"], stay: "約1時間", walk: 2, budget: 1, best: "夜", indoor: false,
     who: ["12月らしいことをしたい人", "外灘の夜景とセットで楽しみたい人"],
@@ -877,7 +881,7 @@ const FINDS = [
     points: ["ホットワイン（グリューワイン）、ドイツのソーセージ、プレッツェル。", "外灘の夜景や黄浦江クルーズとセットにしやすい。"],
     tips: ["12/9（水）・12/10（木）の夜に行ける。"] },
 
-  { id: "speak-low", cat: "night", badges: ["hidden", "japan"], name: "Speak Low（隠れ家バー）", zh: "Speak Low", big: "酒吧", lat: 31.2145, lng: 121.4660,
+  { id: "speak-low", cat: "night", badges: ["hidden", "japan"], name: "Speak Low（隠れ家バー）", zh: "Speak Low", big: "酒吧", lat: 31.2165, lng: 121.4615,
     catch: "バーの道具を売る店の奥、本棚の扉の向こうに隠れたバー。日本人のバーテンダーが作った、アジアの名店。",
     fits: ["night"], stay: "1〜2時間", walk: 1, budget: 3, best: "夜", indoor: true,
     who: ["カクテルが好きな人", "隠れ家のような場所が好きな人"],

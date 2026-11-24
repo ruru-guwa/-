@@ -602,3 +602,67 @@ textarea { width: 100%; min-height: 110px; font: inherit; font-size: .95rem; pad
 
 /* 読み物の中の表：長い見出しは折り返す */
 .article .kv th { white-space: normal; width: 7.5em; min-width: 6em; line-height: 1.5; }
+
+/* 発見 → 予定の候補に入れる */
+.cta.add { margin: 12px 0 0; background: var(--navy); }
+.cta.add small { font-weight: 500; opacity: .85; margin-left: 4px; }
+.unadd { margin-left: auto; border: 0; background: none; color: var(--faint); font-size: .75rem; text-decoration: underline; cursor: pointer; padding: 2px 0; }
+.opt .more { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sheet-wrap { position: fixed; inset: 0; z-index: 120; background: rgba(20, 26, 38, .45); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 720px; max-height: 82vh; overflow-y: auto; background: var(--card); border-radius: var(--radius) var(--radius) 0 0;
+  padding: 14px 16px calc(20px + env(safe-area-inset-bottom)); }
+.sheet-head { display: flex; align-items: center; gap: 8px; position: sticky; top: -14px; background: var(--card); padding: 6px 0; }
+.sheet-head b { flex: 1; font-size: .98rem; line-height: 1.5; }
+.sheet-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px; margin-bottom: 6px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; cursor: pointer; text-align: left; }
+.sheet-row.on { border-color: var(--jade); background: #f2fbf7; }
+.sr-time { font-family: var(--num); font-weight: 600; color: var(--sub); width: 3.2em; }
+.sr-title { flex: 1; font-size: .92rem; }
+.sheet-row .ph { font-size: 22px; color: var(--navy); }
+.sheet-row.on .ph { color: var(--jade); }
+
+/* 地図（OpenStreetMap のデータ） */
+.mapwrap { background: #f7f8fb; }
+.mapwrap svg { touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.mapwrap svg:active { cursor: grabbing; }
+.map-ctrl { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.map-ctrl button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.95); display: grid; place-items: center; font-size: 20px; color: var(--navy); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.map-attr { position: absolute; left: 8px; bottom: 6px; font-size: 10px; color: var(--faint); background: rgba(255,255,255,.75); padding: 1px 6px; border-radius: 6px; }
+.road-label { font-size: 10px; fill: #8a93a3; font-family: var(--sans); font-weight: 600; paint-order: stroke; stroke: #f7f8fb; stroke-width: 3px; }
+.river-label { font-size: 13px; fill: #4f7894; font-weight: 700; font-family: var(--sans); paint-order: stroke; stroke: #f7f8fb; stroke-width: 3px; }
+.side-label { font-size: 22px; fill: #c5cbd8; font-weight: 800; font-family: var(--sans); }
+.old-label { font-size: 12px; font-weight: 700; font-family: var(--sans); paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+.old-big { font-size: 16px; fill: #1f3350; opacity: .55; font-weight: 800; font-family: var(--sans); }
+.dot-label { font-size: 11px; fill: var(--ink); font-weight: 600; font-family: var(--sans); paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+
+/* =========================================================
+   仕上げ
+   ========================================================= */
+/* タブバー：選んでいるタブの上に線 */
+.tabbar a { position: relative; }
+.tabbar a.active::before { content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: var(--red); }
+
+/* 押したときの手ごたえ */
+.card[href]:active, .find-card:active, .find-row:active, .pick:active, .stat:active, .quick a:active, .tool:active, .read-card:active, .cta:active, .dice:active, .action:active, .sheet-row:active { transform: scale(.985); }
+.card[href], .find-card, .find-row, .pick, .stat, .quick a, .tool, .read-card, .cta, .dice, .action, .sheet-row { transition: transform .12s ease; }
+
+/* キーボードで操作したときの枠 */
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focus-visible { outline: 3px solid #8fb3ff; outline-offset: 2px; border-radius: 6px; }
+
+/* 動きを減らす設定の人には動きをつけない */
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+/* 見出しと本文のリズム */
+.section-title { font-size: 1.12rem; letter-spacing: .02em; }
+.article h3 { margin-top: 18px; }
+.article h3:first-child { margin-top: 4px; }
+.article p, .article li { line-height: 1.85; }
+.card.article > h3:first-child, .card.article section h3:first-child { margin-top: 0; }
+
+/* ホームのいちばん下 */
+.foot-note { margin: 28px 4px 8px; font-size: .75rem; color: var(--faint); text-align: center; line-height: 1.7; }
+
+/* 横に流れるカードの右端が切れているのが分かるように */
+.hscroll { scroll-padding-left: 16px; }
+.hscroll::after { content: ""; flex: 0 0 4px; }
+.cta { border: 0; cursor: pointer; font: inherit; }
+.cta.add { width: 100%; justify-content: center; }

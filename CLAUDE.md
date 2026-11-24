@@ -11,7 +11,9 @@
   - 文章は長くてよい（りゅうさんの希望）。`about`・`points`・`deep`（もっと詳しく）・`japan`・`tips` で厚く書く
 - `docs/js/app.js` … 画面の組み立てと操作
 - `docs/css/style.css` … 見た目。色・角丸などは先頭の `:root` の変数で管理
+- `docs/js/mapdata.js` … 地図の川と道路（OpenStreetMap のデータを簡略化したもの。© OpenStreetMap contributors）
 - `docs/sw.js` … オフライン用。ファイルを増やしたら `FILES` に追加し、`CACHE` の番号を上げる
+- 位置（lat/lng）はすべて世界共通の座標（WGS84）。中国の地図アプリ（高徳など）の座標は東に約400mずれているので、そのまま使わない
 - フォントとアイコンは `docs/fonts/` に置いている（中国では Google Fonts や CDN につながらないため、外部から読み込まない）
 
 ## デザイントークン
