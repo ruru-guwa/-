@@ -550,14 +550,14 @@
       <div class="chips" style="margin-bottom:10px"><a class="chip ${dayI == null ? "on" : ""}" href="${qs({ day: null })}">ルートなし</a>${PLAN.map((d, i) => `<a class="chip ${dayI == i ? "on" : ""}" href="${qs({ day: i })}">${d.label}のルート</a>`).join("")}</div>
       <div class="mapwrap">
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="上海中心部の概略図">
-          <defs><pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#e2dacb" stroke-width="1"/></pattern></defs>
+          <defs><pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#e8ebf2" stroke-width="1"/></pattern></defs>
           <rect width="${W}" height="${H}" fill="url(#grid)"/>
-          <path d="${path(RIVER)}" fill="none" stroke="#a9c4d6" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="${path(CREEK)}" fill="none" stroke="#a9c4d6" stroke-width="7" stroke-linecap="round"/>
+          <path d="${path(RIVER)}" fill="none" stroke="#bcd8f2" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="${path(CREEK)}" fill="none" stroke="#bcd8f2" stroke-width="7" stroke-linecap="round"/>
           <text x="${px(31.2180, 121.5030)[0]}" y="${px(31.2180, 121.5030)[1]}" font-size="13" fill="#4f7894" font-weight="700" transform="rotate(-70 ${px(31.2180, 121.5030).join(" ")})">黄浦江</text>
           <text x="${px(31.2470, 121.4650)[0]}" y="${px(31.2470, 121.4650)[1] - 8}" font-size="11" fill="#4f7894" font-weight="700">蘇州河</text>
-          <text x="${px(31.2530, 121.4640)[0]}" y="${px(31.2530, 121.4640)[1]}" font-size="22" fill="#c9bfa9" font-weight="800" font-family="serif">浦西</text>
-          <text x="${px(31.2200, 121.5120)[0]}" y="${px(31.2200, 121.5120)[1]}" font-size="22" fill="#c9bfa9" font-weight="800" font-family="serif">浦東</text>
+          <text x="${px(31.2530, 121.4640)[0]}" y="${px(31.2530, 121.4640)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="serif">浦西</text>
+          <text x="${px(31.2200, 121.5120)[0]}" y="${px(31.2200, 121.5120)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="serif">浦東</text>
           ${oldLayer}
           ${route}
           ${pins}
