@@ -558,6 +558,7 @@
       </div>
       ${glanceHtml(f)}
       ${whoHtml(f)}
+      ${f.more && SPOTS[f.more] ? `<a class="cta alt" href="#/spot/${f.more}"><i class="ph ph-book-open-text"></i><span>このエリアの詳しい解説<br><b>${esc(SPOTS[f.more].name)}</b></span><i class="ph ph-caret-right"></i></a>` : ""}
       <div class="card"><table class="kv">${(f.basics || []).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v}</td></tr>`).join("")}${far ? `<tr><th>ホテルから</th><td>${far.replace(/^ホテルから/, "")}（目安）</td></tr>` : ""}</table>
       <div class="tiny" style="margin-top:6px">2026年11月時点の調べ。料金・時間は行く前に確認します。</div></div>
       <div class="article">

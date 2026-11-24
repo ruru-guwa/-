@@ -593,3 +593,9 @@ textarea { width: 100%; min-height: 110px; font: inherit; font-size: .95rem; pad
 .mini { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; font-size: .74rem; color: var(--sub); }
 .mini .ph { font-size: 13px; margin-left: 6px; color: var(--faint); }
 .mini .ph:first-child { margin-left: 0; }
+
+/* エリアの解説へのリンク */
+.cta.alt { justify-content: flex-start; gap: 12px; margin: 0 0 12px; padding: 12px 14px; background: #eaf1ff; color: var(--navy); font-weight: 600; font-size: .85rem; text-align: left; }
+.cta.alt > .ph:first-child { font-size: 24px; }
+.cta.alt span { flex: 1; line-height: 1.4; }
+.cta.alt b { font-size: 1rem; }
