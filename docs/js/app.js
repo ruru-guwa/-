@@ -556,8 +556,8 @@
           <path d="${path(CREEK)}" fill="none" stroke="#bcd8f2" stroke-width="7" stroke-linecap="round"/>
           <text x="${px(31.2180, 121.5030)[0]}" y="${px(31.2180, 121.5030)[1]}" font-size="13" fill="#4f7894" font-weight="700" transform="rotate(-70 ${px(31.2180, 121.5030).join(" ")})">黄浦江</text>
           <text x="${px(31.2470, 121.4650)[0]}" y="${px(31.2470, 121.4650)[1] - 8}" font-size="11" fill="#4f7894" font-weight="700">蘇州河</text>
-          <text x="${px(31.2530, 121.4640)[0]}" y="${px(31.2530, 121.4640)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="serif">浦西</text>
-          <text x="${px(31.2200, 121.5120)[0]}" y="${px(31.2200, 121.5120)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="serif">浦東</text>
+          <text x="${px(31.2530, 121.4640)[0]}" y="${px(31.2530, 121.4640)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="Zen Kaku Gothic New, sans-serif">浦西</text>
+          <text x="${px(31.2200, 121.5120)[0]}" y="${px(31.2200, 121.5120)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="Zen Kaku Gothic New, sans-serif">浦東</text>
           ${oldLayer}
           ${route}
           ${pins}

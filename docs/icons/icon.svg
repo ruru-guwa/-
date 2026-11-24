@@ -3,6 +3,6 @@
   <g fill="none" stroke="#d4af60" stroke-width="6" opacity=".35">
     <circle cx="420" cy="420" r="60"/><circle cx="420" cy="420" r="100"/><circle cx="420" cy="420" r="140"/>
   </g>
-  <text x="256" y="330" text-anchor="middle" font-family="Hiragino Mincho ProN, Songti SC, serif" font-size="250" fill="#f1d58f">沪</text>
+  <text x="256" y="330" text-anchor="middle" font-family="Hiragino Sans, PingFang SC, sans-serif" font-weight="700" font-size="250" fill="#f1d58f">沪</text>
   <rect x="136" y="388" width="240" height="6" fill="#b5332a"/>
 </svg>
