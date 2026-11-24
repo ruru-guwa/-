@@ -599,3 +599,6 @@ textarea { width: 100%; min-height: 110px; font: inherit; font-size: .95rem; pad
 .cta.alt > .ph:first-child { font-size: 24px; }
 .cta.alt span { flex: 1; line-height: 1.4; }
 .cta.alt b { font-size: 1rem; }
+
+/* 読み物の中の表：長い見出しは折り返す */
+.article .kv th { white-space: normal; width: 7.5em; min-width: 6em; line-height: 1.5; }
