@@ -666,3 +666,112 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focu
 .hscroll::after { content: ""; flex: 0 0 4px; }
 .cta { border: 0; cursor: pointer; font: inherit; }
 .cta.add { width: 100%; justify-content: center; }
+
+/* ---------------- ホーム：4日間の予定（予定の画面への入口） ---------------- */
+.days { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.day-tile { display: flex; flex-direction: column; gap: 6px; padding: 12px 12px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--ink); min-width: 0; }
+.dt-top { display: flex; align-items: baseline; gap: 6px; }
+.dt-top b { font-family: var(--num); font-size: 1.5rem; font-weight: 600; line-height: 1; }
+.dt-top small { color: var(--sub); font-size: .8rem; font-weight: 700; }
+.dt-top .ph { align-self: center; color: var(--k-park); font-size: 18px; }
+.dt-title { font-weight: 700; font-size: .92rem; line-height: 1.4; }
+.day-tile .bar i { background: var(--gold); }
+.dt-done { font-family: var(--num); font-size: .74rem; color: var(--sub); }
+.day-tile.park { background: #ffe6f0; border-color: #ffe6f0; }
+.day-tile.park .dt-top b { color: var(--k-park); }
+.day-tile.park .bar { background: rgba(255,255,255,.75); }
+.day-tile.park .bar i { background: var(--k-park); }
+.day-tile.today { border: 2px solid var(--red); padding: 11px 11px 9px; }
+.dt-now { margin-left: auto; align-self: center; font-size: .7rem; font-weight: 700; color: #fff; background: var(--red); border-radius: 999px; padding: 2px 8px; }
+
+/* ---------------- ディズニー ---------------- */
+.spot-hero.dz-hero { padding: 30px 20px 50px; }
+.dz-hero .count { margin-top: 14px; display: flex; align-items: baseline; gap: 6px; position: relative; z-index: 1; font-size: .95rem; }
+.dz-hero .count b { font-family: var(--num); font-size: 2.6rem; font-weight: 600; color: #f1d58f; line-height: 1; }
+.dz-hours { margin-top: 10px; display: flex; gap: 6px; align-items: flex-start; font-size: .8rem; line-height: 1.55; color: #f6dbe7; position: relative; z-index: 1; }
+.dz-hours .ph { margin-top: 3px; }
+.quick button {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 4px;
+  background: var(--card); border: 0; border-radius: var(--radius); box-shadow: 0 1px 0 var(--line), 0 0 0 1px var(--line);
+  color: var(--ink); font: inherit; font-size: .74rem; font-weight: 600; text-align: center; line-height: 1.3; cursor: pointer;
+}
+.quick button .ic { width: 40px; height: 40px; border-radius: var(--radius); display: grid; place-items: center; background: var(--red-soft); color: var(--red); }
+.quick button:nth-child(2) .ic { background: var(--gold-soft); color: var(--gold); }
+.quick button .ic .ph { font-size: 22px; }
+
+.dz-season { display: grid; gap: 8px; }
+.dz-s { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: var(--radius); background: var(--cs); }
+.dz-s .ic { flex: 0 0 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: var(--cc); font-size: 20px; }
+.dz-s small { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .06em; color: var(--cc); }
+.dz-s b { display: block; font-size: .95rem; line-height: 1.45; }
+.dz-s p { margin: 3px 0 0; font-size: .84rem; color: var(--sub); line-height: 1.65; }
+.dz-toc { margin-top: 12px; }
+.dz-bar { margin: -4px 2px 10px; }
+.section-title[id], .dz-item[id] { scroll-margin-top: 70px; }
+
+.dz-sum { background: #fff5f9; border-color: #f6d6e4; }
+.dz-g { padding: 10px 0; border-bottom: 1px solid #f6d6e4; }
+.dz-g:first-child { padding-top: 0; }
+.dz-g:last-child { border-bottom: 0; padding-bottom: 0; }
+.dz-g-who { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+.dz-g-who .avatar { width: 24px; height: 24px; font-size: .72rem; }
+.dz-g-who b { margin-left: 6px; font-size: .9rem; }
+.dz-g-rides { display: flex; flex-wrap: wrap; gap: 6px; }
+.dz-g-rides a { font-size: .82rem; font-weight: 600; padding: 5px 12px; border-radius: 999px; background: #fff; border: 1px solid #f0cfe0; color: var(--ink); }
+
+.dz-filter { margin-bottom: 10px; }
+.ride { scroll-margin-top: 70px; }
+.ride-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.lvl { font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.lvl.lv1 { background: var(--jade-soft); color: var(--jade); }
+.lvl.lv2 { background: var(--gold-soft); color: var(--gold); }
+.lvl.lv3 { background: var(--red-soft); color: var(--red); }
+.land { display: inline-flex; align-items: center; gap: 6px; font-size: .76rem; font-weight: 600; color: var(--sub); }
+.land i { width: 8px; height: 8px; border-radius: 50%; background: var(--cc); }
+.ride h3 { font-size: 1.08rem; line-height: 1.45; }
+.ride .zh, .dz-item .zh { font-size: .8rem; color: var(--faint); margin: 1px 0 6px; }
+.ride-tags { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .76rem; color: var(--sub); margin-bottom: 8px; }
+.rt { display: inline-flex; align-items: center; gap: 4px; }
+.rt .ph { font-size: 14px; color: var(--faint); }
+.rt.first, .rt.first .ph { color: var(--k-park); font-weight: 700; }
+.rt.wet, .rt.wet .ph { color: var(--c-teal); }
+.ride p { margin: 0 0 8px; font-size: .92rem; line-height: 1.75; }
+.ride .meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; padding: 10px 12px; font-size: .85rem; background: #f7f8fb; border-radius: var(--radius-sm); }
+.ride .meta dt { color: var(--sub); font-weight: 700; }
+.ride .meta dd { margin: 0; }
+.dz-want { margin: 12px 0 0; align-items: center; }
+.dz-want-l { font-size: .75rem; font-weight: 700; color: var(--k-park); margin-right: 2px; }
+.flash { animation: dz-flash 1.8s ease; }
+@keyframes dz-flash { 0%, 50% { outline: 3px solid var(--k-park); outline-offset: 2px; } 100% { outline: 3px solid transparent; outline-offset: 2px; } }
+
+.dz-list { padding: 0 14px; }
+.dz-item { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.dz-item:last-child { border-bottom: 0; }
+.dz-item-top { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 4px; }
+.dz-tag { font-size: .7rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: #eef0f4; color: var(--sub); }
+.dz-tag.t-winter { background: #e3f0f8; color: var(--c-teal); }
+.dz-tag.t-xmas { background: var(--jade-soft); color: var(--jade); }
+.dz-tag.t-10 { background: #ffe6f0; color: var(--k-park); }
+.dz-tag.t-new { background: var(--red-soft); color: var(--red); }
+.dz-place { display: inline-flex; align-items: center; gap: 3px; font-size: .74rem; color: var(--sub); }
+.dz-item h4 { font-size: 1rem; line-height: 1.45; }
+.dz-item p { margin: 0; font-size: .88rem; line-height: 1.7; }
+.dz-when { margin-top: 6px; display: flex; gap: 6px; align-items: flex-start; font-size: .8rem; color: var(--sub); }
+.dz-when .ph { margin-top: 3px; }
+.dz-tip { margin-top: 8px; padding: 8px 10px; font-size: .82rem; line-height: 1.6; color: var(--navy); background: #eaf1ff; border-radius: var(--radius-sm); }
+.dz-tips { margin: 10px 0 0; padding-left: 1.2em; font-size: .86rem; color: var(--sub); line-height: 1.7; }
+.dz-tips li + li { margin-top: 4px; }
+.ag-note { font-size: .82rem; line-height: 1.55; opacity: .92; }
+.dz-cta { margin-top: 10px; }
+.dz-ol { margin: 0; padding-left: 1.3em; }
+.dz-ol li { padding: 6px 0; }
+.dz-ol li b { display: block; font-size: .95rem; }
+.dz-ol li span { display: block; font-size: .85rem; color: var(--sub); line-height: 1.65; }
+.zodiac { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.zd { display: flex; flex-direction: column; gap: 2px; padding: 9px 10px; border: 1.5px solid transparent; border-radius: var(--radius-sm); background: #f7f8fb; min-width: 0; }
+.zd b { font-size: 1.05rem; line-height: 1.2; }
+.zd b small { margin-left: 4px; font-size: .7rem; font-weight: 600; color: var(--sub); }
+.zd span { font-size: .84rem; font-weight: 700; line-height: 1.35; }
+.zd > small { font-size: .7rem; color: var(--sub); line-height: 1.4; }
+.zd.now { background: #fff0d9; border-color: var(--gold); }
+.pill.rose { background: #ffe6f0; color: var(--k-park); }

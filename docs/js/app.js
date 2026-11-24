@@ -23,6 +23,7 @@
     planMode: store.get("planMode", "choose"),
     large: store.get("large", false),
     custom: store.get("custom", {}),    // 発見から予定に足した候補 { slotId: [findId, ...] }
+    dwant: store.get("dwant", {}),      // ディズニーで乗りたい人 { rideId: [memberId, ...] }
   };
   const save = (k) => store.set(k, state[k]);
   if (state.nowOverride) { state.nowOverride = ""; save("nowOverride"); } // 試作のときの日時の仮設定を消す
@@ -80,6 +81,7 @@
     }));
     return set;
   }
+  const slotDone = (s) => s.type === "fixed" || (s.type === "choice" && !!chosenOf(s)) || (s.type === "split" && Object.values(splitOf(s)).filter(Boolean).length > 0);
   function slotSummary(slot) { // タイムラインに出す文字
     if (slot.type === "fixed") return slot.title;
     if (slot.type === "choice") { const o = chosenOf(slot); return o ? o.title : null; }
@@ -94,6 +96,7 @@
   const IC = {
     home: '<i class=\"ph ph-house\"></i>',
     plan: '<i class=\"ph ph-calendar-dots\"></i>',
+    disney: '<i class=\"ph ph-castle-turret\"></i>',
     map: '<i class=\"ph ph-map-trifold\"></i>',
     search: '<i class=\"ph ph-compass\"></i>',
     tools: '<i class=\"ph ph-squares-four\"></i>',
@@ -107,7 +110,7 @@
   /* ---------------- ルーター ---------------- */
   const TABS = [
     { id: "home", label: "ホーム", href: "#/home" },
-    { id: "plan", label: "予定", href: "#/plan" },
+    { id: "disney", label: "ディズニー", href: "#/disney" },
     { id: "map", label: "地図", href: "#/map" },
     { id: "search", label: "発見", href: "#/search" },
     { id: "tools", label: "ツール", href: "#/tools" },
@@ -119,7 +122,8 @@
   }
   function tabOf(parts) {
     const p = parts[0];
-    if (["plan"].includes(p)) return "plan";
+    // ディズニーの解説と攻略ガイドも「ディズニー」のタブの中として扱う。予定はホームから開く
+    if (p === "disney" || (p === "spot" && parts[1] === "disney") || (p === "article" && parts[1] === "disneyguide")) return "disney";
     if (["map"].includes(p)) return "map";
     if (["search", "spot", "article", "term", "find"].includes(p)) return "search";
     if (["tools", "favs"].includes(p)) return "tools";
@@ -131,7 +135,7 @@
     const { parts, q } = parse();
     const page = PAGES[parts[0]] || PAGES.home;
     const out = page(parts.slice(1), q);
-    const isRoot = ["home", "plan", "map", "search", "tools", ""].includes(parts[0]) && parts.length === 1;
+    const isRoot = ["home", "disney", "map", "search", "tools", ""].includes(parts[0]) && parts.length === 1;
     const favKey = out.fav;
     const isFav = favKey && state.favs.includes(favKey);
 
@@ -298,6 +302,18 @@
     const dayN = Math.floor(n.getTime() / 86400000);
     const trivia = TRIVIA[dayN % TRIVIA.length];
 
+    // 4日間の予定（予定の画面への入口）
+    const daysHtml = `<div class="section-title">4日間の予定 <small><a href="#/plan">ひらく ›</a></small></div>
+      <div class="days">${PLAN.map((d, i) => {
+        const done = d.slots.filter(slotDone).length, all = d.slots.length;
+        const today = d.date === sh.date, park = /ディズニー/.test(d.title);
+        return `<a class="day-tile ${today ? "today" : ""} ${park ? "park" : ""}" href="#/plan/${i}">
+          <span class="dt-top"><b>${d.label}</b><small>${d.dow}</small>${park ? `<i class="ph ph-castle-turret"></i>` : ""}${today ? `<span class="dt-now">今日</span>` : ""}</span>
+          <span class="dt-title">${esc(d.title)}</span>
+          <span class="bar"><i style="width:${Math.round((done / all) * 100)}%"></i></span>
+          <span class="dt-done">${done}/${all} 決定</span></a>`;
+      }).join("")}</div>`;
+
     return {
       title: "",
       html: `
@@ -315,7 +331,7 @@
         <a href="#/tools/emergency"><span class="ic"><i class="ph ph-siren"></i></span>緊急<br>連絡先</a>
       </div>
 
-      ${main}
+      ${ph === "during" ? main + daysHtml : daysHtml + main}
 
       <div class="section-title">今日の発見 <small><a href="#/search">もっと発見 ›</a></small></div>
       ${(() => { const f = todaysFind(); const c = FIND_CATS[f.cat]; return `<a class="pick" href="${findHref(f)}"><div class="pick-art c-${c.color || "navy"} ${isLatin(f.big) ? "latin" : ""}"><b>${esc(f.big)}</b></div><div class="pick-body"><div class="fc-badges">${badgesOf(f).map(badgeHtml).join("")}</div><h3>${esc(f.name)}</h3><p>${esc(f.catch)}</p></div></a>`; })()}
@@ -358,7 +374,7 @@
     const slotHtml = (s) => {
       const time = `<div class="time">${s.time}<small>〜${s.end}</small></div>${node(s)}`;
       if (s.type === "fixed") {
-        return `<div class="slot fixed">${time}<div class="card"><div class="kicker">決定</div><h3>${esc(s.title)}</h3>${s.note ? `<div class="muted">${esc(s.note)}</div>` : ""}${s.spot && SPOTS[s.spot] ? `<a class="toggle-link" href="#/spot/${s.spot}">${esc(SPOTS[s.spot].name)}の解説を読む ›</a>` : ""}</div></div>`;
+        return `<div class="slot fixed">${time}<div class="card"><div class="kicker">決定</div><h3>${esc(s.title)}</h3>${s.note ? `<div class="muted">${esc(s.note)}</div>` : ""}${s.go ? `<a class="toggle-link" href="${s.go[0]}">${esc(s.go[1])} ›</a>` : s.spot && SPOTS[s.spot] ? `<a class="toggle-link" href="#/spot/${s.spot}">${esc(SPOTS[s.spot].name)}の解説を読む ›</a>` : ""}</div></div>`;
       }
       if (s.type === "choice") {
         const o = chosenOf(s);
@@ -411,7 +427,7 @@
       }
       const title = s.type === "fixed" ? s.title : o?.title;
       if (!title) return `<a class="ag ag-open" href="#" data-act="mode" data-mode="choose"><i class="ph ph-circle-dashed ag-ic"></i><div class="ag-body"><b>${esc(s.title)}：未選択</b><span class="ag-time">${range} ・ 候補 ${optionsOf(s).length} 件から選ぶ</span></div></a>`;
-      const href = o?.spot ? `#/spot/${o.spot}` : null;
+      const href = o?.spot ? `#/spot/${o.spot}` : s.go?.[0] || null;
       const inner = `<i class="ph ph-${k.icon} ag-ic"></i><div class="ag-body"><b>${esc(title)}</b><span class="ag-time">${range}${o?.move ? ` ・ ${esc(o.move)}` : ""}</span></div>${href ? `<i class="ph ph-caret-right ag-go"></i>` : ""}`;
       return href ? `<a class="ag k-${k.id}" href="${href}">${inner}</a>` : `<div class="ag k-${k.id}">${inner}</div>`;
     };
@@ -454,6 +470,147 @@
     if (/お茶/.test(s.title)) return { ...KINDS.meal, icon: "coffee" };
     return KINDS.sight;
   }
+
+  /* ---------------- ディズニー（タブ） ---------------- */
+  const LV = { 1: { label: "おだやか", cls: "lv1" }, 2: { label: "ほどよい", cls: "lv2" }, 3: { label: "スリル", cls: "lv3" } };
+  const D_TAG = { "冬だけ": "t-winter", "冬の人気": "t-winter", "クリスマス": "t-xmas", "10周年": "t-10", "上海生まれ": "t-10", "上海ならでは": "t-10", "今年の新作": "t-new", "冬の新メニュー": "t-new" };
+  let dFilter = "all";
+  let keeping = false; // 「乗りたい」を押したときなど、同じ画面の描き直しでは表示の位置を動かさない
+
+  PAGES.disney = (_, q) => {
+    const D = DISNEY;
+    const n = now(), sh = shParts(n);
+    const days = Math.ceil((new Date(D.date + "T00:00:00+08:00") - n) / 86400000);
+    const count = sh.date === D.date ? `<div class="count"><b>今日</b><span>はディズニーの日</span></div>`
+      : days > 0 ? `<div class="count"><span>ディズニーまで あと</span><b>${days}</b><span>日</span></div>`
+      : `<div class="count"><span>楽しかった1日を、思い出に</span></div>`;
+    const tGo = TAXI.find((t) => t.id === "disney"), tBack = TAXI.find((t) => t.id === "hotel");
+
+    // 準備：「準備・持ち物」のディズニーの項目（チェックは共通）＋ディズニーだけの項目
+    const prep = [
+      ...CHECKLISTS.prep.items.filter((t) => /ディズニー/.test(t)).map((t) => ({ t, k: ckey("prep", t) })),
+      ...D.prep.map((t) => ({ t, k: ckey("disney", t) })),
+    ];
+    const prepDone = prep.filter((x) => state.checks[x.k]).length;
+
+    // みんなの乗りたい：乗りたい人の組み合わせごとにまとめる（別行動の作戦に使う）
+    const order = TRIP.members.map((m) => m.id);
+    const groups = new Map();
+    D.rides.forEach((r) => {
+      const w = order.filter((id) => (state.dwant[r.id] || []).includes(id));
+      if (!w.length) return;
+      const k = w.join(",");
+      if (!groups.has(k)) groups.set(k, { ids: w, rides: [] });
+      groups.get(k).rides.push(r);
+    });
+    const gList = [...groups.values()].sort((a, b) => b.ids.length - a.ids.length || order.indexOf(a.ids[0]) - order.indexOf(b.ids[0]));
+    const gLabel = (ids) => (ids.length === order.length ? "4人みんなで" : ids.map((id) => memberById(id).name).join("・") + (ids.length === 1 ? "だけ" : "で"));
+
+    const tagRow = (r) => [
+      r.first ? `<span class="rt first"><i class="ph ph-sparkle"></i>${esc(r.first)}</span>` : "",
+      r.indoor === true ? `<span class="rt"><i class="ph ph-house-line"></i>屋内</span>` : r.indoor === "half" ? `<span class="rt"><i class="ph ph-house-line"></i>半分屋内</span>` : `<span class="rt"><i class="ph ph-sun"></i>屋外</span>`,
+      r.wet ? `<span class="rt wet"><i class="ph ph-drop"></i>濡れる</span>` : "",
+      r.single ? `<span class="rt"><i class="ph ph-user"></i>シングルライダー</span>` : "",
+      r.dpa ? `<span class="rt"><i class="ph ph-lightning"></i>プレミアアクセス</span>` : "",
+    ].join("");
+    const rideCard = (r) => {
+      const land = D.lands[r.land]; const w = state.dwant[r.id] || [];
+      return `<article class="card ride" id="r-${r.id}">
+        <div class="ride-top"><span class="lvl ${LV[r.level].cls}">${LV[r.level].label}</span><span class="land c-${land.color}"><i></i>${esc(land.name)}</span></div>
+        <h3>${esc(r.name)}</h3><div class="zh">${esc(r.zh)}</div>
+        <div class="ride-tags">${tagRow(r)}</div>
+        <p>${esc(r.text)}</p>
+        <dl class="meta"><dt>注目</dt><dd>${esc(r.look)}</dd><dt>4人で</dt><dd>${esc(r.note)}</dd>${r.tip ? `<dt>コツ</dt><dd>${esc(r.tip)}</dd>` : ""}</dl>
+        <div class="persons dz-want"><span class="dz-want-l">乗りたい</span>${TRIP.members.map((p) => `<button class="person ${w.includes(p.id) ? "on" : ""}" data-act="dwant" data-ride="${r.id}" data-person="${p.id}" aria-pressed="${w.includes(p.id)}">${avatar(p.id)}${esc(p.name)}</button>`).join("")}</div>
+      </article>`;
+    };
+    const FILTERS = [["all", "すべて"], ["1", "おだやか"], ["2", "ほどよい"], ["3", "スリル"], ["in", "屋内"]];
+    const shown = D.rides.filter((r) => dFilter === "all" || (dFilter === "in" ? r.indoor === true : String(r.level) === dFilter));
+
+    const item = (x, id) => `<div class="dz-item" ${id ? `id="r-${id}"` : ""}>
+      <div class="dz-item-top"><span class="dz-tag ${D_TAG[x.tag] || ""}">${esc(x.tag)}</span>${x.place ? `<span class="dz-place"><i class="ph ph-map-pin"></i>${esc(x.place)}</span>` : ""}</div>
+      <h4>${esc(x.name)}</h4>${x.zh ? `<div class="zh">${esc(x.zh)}</div>` : ""}
+      <p>${esc(x.text)}</p>
+      ${x.when ? `<div class="dz-when"><i class="ph ph-clock"></i><span>${esc(x.when)}</span></div>` : ""}
+      ${x.tip ? `<div class="dz-tip">${esc(x.tip)}</div>` : ""}</div>`;
+
+    const planHtml = D.plan.map((p) => `<div class="ag k-${p.kind}"><i class="ph ph-${p.icon || KINDS[p.kind].icon} ag-ic"></i><div class="ag-body"><span class="ag-time">${esc(p.time)}</span><b>${esc(p.title)}</b>${p.text ? `<span class="ag-note">${esc(p.text)}</span>` : ""}${(p.split || []).map(([a, b, t]) => `<div class="ag-person">${avatar(a)}${avatar(b)}<span>${esc(t)}</span></div>`).join("")}</div></div>`).join("");
+    const toc = [["dz-prep", "準備"], ["dz-want", "乗りたい"], ["dz-rides", "乗り物"], ["dz-shows", "ショー"], ["dz-plan", "1日の流れ"], ["dz-food", "食べ物"], ["dz-goods", "グッズ"], ["dz-only", "上海だけ"], ["dz-back", "帰り方"]];
+    const tips = (list) => `<ul class="dz-tips">${list.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`;
+
+    return {
+      title: "ディズニー",
+      html: `
+      <section class="spot-hero rose dz-hero">
+        <div class="big">迪士尼</div>
+        <div class="sub">SHANGHAI DISNEYLAND ・ 2026.12.11 FRI</div>
+        <h2>上海ディズニーランド</h2>
+        ${count}
+        <div class="dz-hours"><i class="ph ph-clock"></i><span>${esc(D.hours)}</span></div>
+      </section>
+      <div class="quick">
+        <button data-act="show-taxi" data-zh="${esc(tGo.zh)}" data-addr="${esc(tGo.addr)}" data-ja="${esc(tGo.ja)}"><span class="ic"><i class="ph ph-taxi"></i></span>行きの<br>タクシー</button>
+        <button data-act="show-taxi" data-zh="${esc(tBack.zh)}" data-addr="${esc(tBack.addr)}" data-ja="${esc(tBack.ja)}"><span class="ic"><i class="ph ph-car-profile"></i></span>帰りの<br>タクシー</button>
+        <a href="#/tools/phrase"><span class="ic"><i class="ph ph-bowl-food"></i></span>お店で<br>見せる</a>
+        <a href="#/article/disneyguide"><span class="ic"><i class="ph ph-book-open-text"></i></span>攻略<br>ガイド</a>
+      </div>
+
+      <div class="label-s">いまの上海ディズニー</div>
+      <div class="dz-season">${D.season.map((s) => `<div class="dz-s c-${s.color}"><span class="ic"><i class="ph ph-${s.icon}"></i></span><div><small>${esc(s.h)}</small><b>${esc(s.b)}</b><p>${esc(s.t)}</p></div></div>`).join("")}</div>
+
+      <div class="card dz-toc"><div class="tiny" style="margin-bottom:6px">このページの中身</div><div class="toc">${toc.map(([id, l]) => `<a href="#${id}" data-act="jump" data-to="${id}">${l}</a>`).join("")}</div></div>
+
+      <div class="section-title" id="dz-prep">ディズニーの準備 <small>${prepDone}/${prep.length}</small></div>
+      <span class="bar dz-bar"><i style="width:${Math.round((prepDone / prep.length) * 100)}%;background:var(--k-park)"></i></span>
+      <div class="card">${prep.map((x) => `<div class="mission ${state.checks[x.k] ? "on" : ""}" data-act="check" data-key="${x.k}"><span class="check"></span><span>${esc(x.t)}</span></div>`).join("")}</div>
+      <p class="tiny">チケット・アプリ・早享卡の項目は、ツールの「準備・持ち物」と同じものです。どちらでチェックしても両方に反映されます。</p>
+
+      <div class="section-title" id="dz-want">みんなの乗りたい</div>
+      <section class="card dz-sum">${gList.length ? gList.map((g) => `<div class="dz-g"><div class="dz-g-who">${g.ids.map(avatar).join("")}<b>${esc(gLabel(g.ids))}</b></div><div class="dz-g-rides">${g.rides.map((r) => `<a href="#r-${r.id}" data-act="jump" data-to="r-${r.id}">${esc(r.short)}</a>`).join("")}</div></div>`).join("") : `<p class="muted" style="margin:0">下の乗り物で、乗りたい人の名前を押すと、ここに「4人みんなで乗るもの」「2人で乗るもの」がまとまります。別行動の組み合わせを考えるときに。</p>`}</section>
+
+      <div class="section-title" id="dz-rides">乗り物 <small>${shown.length}件</small></div>
+      <div class="chips dz-filter">${FILTERS.map(([v, l]) => `<button class="chip ${dFilter === v ? "on" : ""}" data-act="dfilter" data-v="${v}">${l}</button>`).join("")}</div>
+      ${shown.map(rideCard).join("")}
+      <p class="tiny">強さは目安です。プレミアアクセスの印は、2026年の旅行サイトで対象と確認できたものだけ（ほかにも対象があります）。休止中の乗り物は当日アプリで確認してください。</p>
+
+      <div class="section-title" id="dz-shows">ショー・パレード・冬の演出</div>
+      <div class="card dz-list">${D.shows.map((s) => item(s, s.id)).join("")}</div>
+      <p class="tiny">上演の時刻と休止は日によって変わります。当日の朝、公式アプリで確認してください。</p>
+
+      <div class="section-title" id="dz-plan">4人の1日の流れ（例）</div>
+      <div class="agenda">${planHtml}</div>
+      <a class="cta alt dz-cta" href="#/plan/2"><i class="ph ph-calendar-dots"></i><span><b>12/11の予定</b><br>行き方（タクシー・地下鉄）と帰り方を選ぶ</span><i class="ph ph-caret-right"></i></a>
+
+      <div class="section-title" id="dz-food">食べたいもの</div>
+      <div class="card dz-list">${D.food.map((x) => item(x)).join("")}</div>
+      ${tips(D.foodTips)}
+
+      <div class="section-title" id="dz-goods">グッズ</div>
+      <div class="card dz-list">${D.goods.map((x) => item(x)).join("")}</div>
+      ${tips(D.goodsTips)}
+
+      <div class="section-title" id="dz-only">上海だけのもの</div>
+      <div class="card"><ol class="dz-ol">${D.only.map((o) => `<li><b>${esc(o.h)}</b><span>${esc(o.t)}</span></li>`).join("")}</ol></div>
+      <div class="label-s">十二支の庭の、干支のキャラクター</div>
+      <div class="zodiac">${D.zodiac.map(([k, y, c, f]) => `<div class="zd ${k === "午" ? "now" : ""}"><b>${k}<small>${y}</small></b><span>${esc(c)}</span>${f ? `<small>${esc(f)}</small>` : ""}</div>`).join("")}</div>
+      <p class="tiny">ガーデン・オブ・イマジネーションにある、十二支をディズニーのキャラクターで表したモザイクの壁。中国の「亥」はイノシシではなくブタ。色のついた枠は今年（2026年・午年）のマキシマス。4人それぞれの生まれ年のキャラクターも見つかる。</p>
+
+      <div class="section-title" id="dz-back">帰り方</div>
+      ${tips(D.back)}
+
+      <div class="section-title">もっと詳しく</div>
+      <div class="card related">
+        <a href="#/spot/disney">上海ディズニーの解説（歴史・東京との違い・クイズ）</a>
+        <a href="#/article/disneyguide">上海ディズニー攻略ガイド（チケット・アプリ・お金で時間を買う方法）</a>
+        <a href="#/plan/2">12/11の予定（行き方・帰り方）</a>
+      </div>
+      <p class="foot-note">2026年11月下旬の調べ（公式の発表・報道・旅行サイトや攻略記事より）。当日の営業時間・ショーの時刻・休止は、公式アプリで確認してください。</p>`,
+      after() {
+        const r = q.get("r");
+        if (r && !keeping) setTimeout(() => { const t = document.getElementById("r-" + r); if (t) { window.scrollTo({ top: t.getBoundingClientRect().top + scrollY - 70 }); t.classList.add("flash"); } }, 30);
+      },
+    };
+  };
 
   /* ---------------- スポット ---------------- */
   PAGES.spot = (args) => {
@@ -595,6 +752,8 @@
     Object.entries(SPOTS).forEach(([id, s]) => items.push({ type: "スポット", cls: "red", href: `#/spot/${id}`, title: s.name, sub: s.catch, text: [s.name, s.zh, s.en, s.read, s.catch, ...s.sections.map((x) => x.h + " " + strip(x.html))].join(" "), facets: [...s.purposes, ...s.themes, ...s.times, s.area] }));
     Object.entries(ARTICLES).forEach(([id, a]) => items.push({ type: "読み物", cls: "", href: `#/article/${id}`, title: a.title, sub: a.lead, text: a.title + " " + a.lead + " " + strip(a.html), facets: [...a.themes, "学ぶ"] }));
     Object.entries(TERMS).forEach(([id, t]) => items.push({ type: "用語", cls: "gray", href: `#/term/${id}`, title: t.name, sub: strip(t.html).slice(0, 60) + "…", text: t.name + " " + t.read + " " + strip(t.html), facets: ["学ぶ", "歴史"] }));
+    DISNEY.rides.forEach((r) => items.push({ type: "ディズニー", cls: "rose", href: `#/disney?r=${r.id}`, title: r.name, sub: r.text, text: [r.name, r.zh, r.text, r.look, r.note, r.tip || "", "ディズニー 乗り物 アトラクション"].join(" "), facets: ["ディズニー"] }));
+    DISNEY.shows.forEach((s) => items.push({ type: "ディズニー", cls: "rose", href: `#/disney?r=${s.id}`, title: s.name, sub: s.text, text: [s.name, s.zh, s.text, s.place, s.when, "ディズニー ショー パレード"].join(" "), facets: ["ディズニー"] }));
     allOptions().forEach((o) => items.push({ type: "予定の候補", cls: "jade", href: `#/plan/${o.dayIndex}`, title: o.title, sub: `${o.day.label} ${o.slot.title}・${o.why || ""}`, text: [o.title, o.why, o.look, o.move].join(" "), facets: o.tags || [] }));
     [["タクシーに見せる", "#/tools/taxi", "行き先を中国語で大きく表示"], ["お店で見せる", "#/tools/phrase", "パクチー抜き・八角抜き 不要香菜"], ["為替の計算", "#/tools/rate", "人民元 円 換算"], ["緊急連絡先", "#/tools/emergency", "警察 救急 総領事館"], ["持ち物・準備チェック", "#/tools/check", "持ち物 準備 Alipay eSIM"]]
       .forEach(([t, h, x]) => items.push({ type: "ツール", cls: "gray", href: h, title: t, sub: x, text: t + " " + x, facets: [] }));
@@ -980,12 +1139,19 @@
       if (state.sel[slot] && typeof state.sel[slot] === "object") Object.keys(state.sel[slot]).forEach((k) => { if (state.sel[slot][k] === "f:" + find) delete state.sel[slot][k]; });
       save("custom"); save("sel"); toast("候補から外しました"); keepRender();
     }
+    else if (a === "dwant") {
+      const { ride, person } = el.dataset; const list = state.dwant[ride] || [];
+      state.dwant[ride] = list.includes(person) ? list.filter((x) => x !== person) : [...list, person];
+      if (!state.dwant[ride].length) delete state.dwant[ride];
+      save("dwant"); keepRender();
+    }
+    else if (a === "dfilter") { dFilter = el.dataset.v; keepRender(); }
     else if (a === "large") { state.large = el.dataset.v === "1"; save("large"); applyLarge(); keepRender(); }
     else if (a === "reset-sel") { if (confirm("選んだ予定をすべて消しますか？")) { state.sel = {}; save("sel"); toast("リセットしました"); } }
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches?.(".opt[data-act]")) e.target.click(); });
 
-  function keepRender() { const y = scrollY; render(); window.scrollTo(0, y); }
+  function keepRender() { const y = scrollY; keeping = true; render(); keeping = false; window.scrollTo(0, y); }
   function applyLarge() { document.documentElement.classList.toggle("large", !!state.large); }
 
   window.addEventListener("hashchange", render);
