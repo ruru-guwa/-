@@ -565,3 +565,31 @@ textarea { width: 100%; min-height: 110px; font: inherit; font-size: .95rem; pad
 .map-legend .lg i.big { width: 13px; height: 13px; border: 2px solid #fff; box-shadow: 0 0 0 1px #ddd; }
 .map-card.list-card { padding: 0 14px; }
 .offmap { margin-top: 8px; }
+
+/* ひと目でわかる情報 */
+.glance { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.gl { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-sm); min-width: 0; }
+.gl > .ph { grid-row: span 2; font-size: 22px; color: var(--navy); background: #eaf1ff; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+.gl-l { font-size: .7rem; color: var(--sub); font-weight: 700; }
+.gl b { font-size: .88rem; line-height: 1.4; font-weight: 700; }
+.gl b small { font-weight: 600; color: var(--sub); font-size: .72rem; }
+.gl:last-child:nth-child(odd) { grid-column: span 2; }
+.dots { display: inline-flex; gap: 3px; vertical-align: 1px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: #dfe3ea; display: inline-block; }
+.dots i.on { background: var(--jade); }
+
+/* こんな人におすすめ */
+.who { background: #f5f8ff; border-color: #dbe5fb; }
+.who h3 { display: flex; align-items: center; gap: 6px; font-size: 1.05rem; margin-bottom: 8px; color: var(--navy); }
+.who ul { margin-bottom: 10px; }
+.fit-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fit { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; background: var(--card); border: 1px solid #d6e0f5; color: var(--navy); font-size: .8rem; font-weight: 600; white-space: nowrap; }
+.fit .ph { font-size: 15px; }
+.fit.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.fit-scroll { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; }
+.fit-scroll::-webkit-scrollbar { display: none; }
+
+/* 一覧の行の小さな情報 */
+.mini { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; font-size: .74rem; color: var(--sub); }
+.mini .ph { font-size: 13px; margin-left: 6px; color: var(--faint); }
+.mini .ph:first-child { margin-left: 0; }

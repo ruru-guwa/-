@@ -180,9 +180,32 @@
     const c = FIND_CATS[f.cat];
     const far = howFar(f);
     return `<a class="find-row" href="${findHref(f)}"><span class="fr-ic c-${c.color || "navy"}"><i class="ph ph-${c.icon}"></i></span>
-      <div class="fr-body"><div class="fc-badges">${badgesOf(f).map(badgeHtml).join("")}</div><h4>${esc(f.name)}</h4><p>${esc(f.catch)}</p>${far ? `<small><i class="ph ph-map-pin"></i> ${far}</small>` : ""}</div></a>`;
+      <div class="fr-body"><div class="fc-badges">${badgesOf(f).map(badgeHtml).join("")}</div><h4>${esc(f.name)}</h4><p>${esc(f.catch)}</p>${miniMeta(f)}${far ? `<small><i class="ph ph-map-pin"></i> ${far}</small>` : ""}</div></a>`;
   }
-  const findText = (f) => [f.name, f.zh, f.catch, strip(f.about || ""), ...(f.points || []).map(strip), ...(f.tips || []).map(strip), f.japan || "", ...(f.basics || []).flat()].join(" ");
+  const fitsOf = (f) => [...(f.fits || []), ...(f.walk === 1 ? ["easy"] : []), ...(f.indoor === true ? ["rain"] : [])];
+  const BUDGET = ["無料", "〜50元", "50〜200元", "200元〜"];
+  const WALK = ["", "少なめ", "ふつう", "多め"];
+  const INDOOR = { true: "屋内（雨でもOK）", half: "半分屋内", false: "屋外" };
+  const dots = (n, max = 3) => `<span class="dots">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</span>`;
+  function glanceHtml(f) { // ひと目でわかる情報
+    if (!f || f.walk == null) return "";
+    const cell = (ic, label, val) => `<div class="gl"><i class="ph ph-${ic}"></i><span class="gl-l">${label}</span><b>${val}</b></div>`;
+    return `<div class="glance">
+      ${cell("clock", "所要時間", esc(f.stay || "—"))}
+      ${cell("person-simple-walk", "歩く量", `${dots(f.walk)} ${WALK[f.walk]}`)}
+      ${cell("currency-cny", "予算（1人）", f.budget === 0 ? "無料" : `${"¥".repeat(f.budget)} <small>${BUDGET[f.budget]}</small>`)}
+      ${cell("sun-horizon", "おすすめの時間", esc(f.best || "—"))}
+      ${cell("umbrella", "雨の日", INDOOR[String(f.indoor)] || "—")}
+    </div>`;
+  }
+  function whoHtml(f) { // こんな人におすすめ
+    if (!f || !(f.who?.length || f.fits?.length)) return "";
+    return `<section class="card who"><h3><i class="ph ph-users-three"></i> こんな人におすすめ</h3>
+      ${f.who?.length ? `<ul>${f.who.map((w) => `<li>${w}</li>`).join("")}</ul>` : ""}
+      <div class="fit-chips">${fitsOf(f).map((k) => `<a class="fit" href="#/search?p=${k}"><i class="ph ph-${FIND_FITS[k].icon}"></i>${FIND_FITS[k].label}</a>`).join("")}</div></section>`;
+  }
+  const miniMeta = (f) => (f.walk == null ? "" : `<span class="mini"><i class="ph ph-clock"></i>${esc(f.stay)}<i class="ph ph-person-simple-walk"></i>${WALK[f.walk]}<i class="ph ph-currency-cny"></i>${f.budget === 0 ? "無料" : "¥".repeat(f.budget)}</span>`);
+  const findText = (f) => [f.name, f.zh, f.catch, strip(f.about || ""), ...(f.points || []).map(strip), ...(f.tips || []).map(strip), ...(f.who || []), ...(f.deep || []).map((d) => d.h + " " + strip(d.html)), f.japan || "", ...(f.basics || []).flat(), ...fitsOf(f).map((k) => FIND_FITS[k].label)].join(" ");
   function todaysFind() { // 日替わりで1つ（詳しい解説ページがあるものは除く）
     const pool = FINDS.filter((f) => !f.link);
     return pool[(Math.floor(now().getTime() / 86400000) * 7) % pool.length];
@@ -447,6 +470,7 @@
         <a class="action" href="#/map?focus=${id}"><i class="ph ph-map-pin-line"></i> 位置関係</a>
       </div>
       <div class="pills" style="margin:6px 0 10px">${s.themes.map((t) => `<a class="pill" href="#/search?f=${encodeURIComponent(t)}">${esc(t)}</a>`).join("")}${s.times.map((t) => `<span class="pill jade">${t}</span>`).join("")}</div>
+      ${(() => { const lf = FINDS.find((x) => x.link === `#/spot/${id}`); return lf ? glanceHtml(lf) + whoHtml(lf) : ""; })()}
 
       <div class="card"><table class="kv">${s.basics.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v}</td></tr>`).join("")}</table>
       <div class="tiny" style="margin-top:6px">料金・時間は2026年11月時点の調べ。出発前にもう一度確認します。</div></div>
@@ -532,11 +556,14 @@
         ${apple ? `<a class="action" href="${apple}" target="_blank" rel="noopener"><i class="ph ph-map-pin"></i> Appleマップ</a>` : ""}
         ${hasPos(f) ? `<a class="action" href="#/map?focus=f:${f.id}"><i class="ph ph-map-pin-line"></i> 位置関係</a>` : ""}
       </div>
+      ${glanceHtml(f)}
+      ${whoHtml(f)}
       <div class="card"><table class="kv">${(f.basics || []).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v}</td></tr>`).join("")}${far ? `<tr><th>ホテルから</th><td>${far.replace(/^ホテルから/, "")}（目安）</td></tr>` : ""}</table>
       <div class="tiny" style="margin-top:6px">2026年11月時点の調べ。料金・時間は行く前に確認します。</div></div>
       <div class="article">
         ${f.about ? `<section class="card"><h3>どんな所</h3>${f.about}</section>` : ""}
         ${f.points?.length ? `<section class="card"><h3>ここが面白い</h3>${list(f.points)}</section>` : ""}
+        ${(f.deep || []).map((d) => `<section class="card"><h3>${esc(d.h)}</h3>${d.html}</section>`).join("")}
         ${f.japan ? `<section class="card"><h3>日本とのつながり</h3><p>${f.japan}</p></section>` : ""}
         ${f.tips?.length ? `<section class="card"><h3>楽しみ方のコツ</h3>${list(f.tips)}</section>` : ""}
       </div>
@@ -562,9 +589,10 @@
     const kw = (q.get("q") || "").trim();
     const cat = q.get("c") || "";
     const bad = q.get("b") || "";
+    const fit = q.get("p") || "";
     const f = q.getAll("f");
-    const filtering = !!(kw || cat || bad || f.length);
-    const linkTo = (o) => { const v = { q: kw, c: cat, b: bad, ...o }; const p = new URLSearchParams(); Object.entries(v).forEach(([k, val]) => val && p.set(k, val)); p.set("keep", "1"); return "#/search?" + p.toString(); };
+    const filtering = !!(kw || cat || bad || fit || f.length);
+    const linkTo = (o) => { const v = { q: kw, c: cat, b: bad, p: fit, ...o }; const p = new URLSearchParams(); Object.entries(v).forEach(([k, val]) => val && p.set(k, val)); p.set("keep", "1"); return "#/search?" + p.toString(); };
     const hl = (t) => { const e = esc(t); if (!kw) return e; const k = esc(kw).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); return e.replace(new RegExp(k, "gi"), (m) => `<mark>${m}</mark>`); };
     const snippet = (it) => { if (!kw) return it.sub; const i = it.text.toLowerCase().indexOf(kw.toLowerCase()); if (i < 0 || it.sub.includes(kw)) return it.sub; return "…" + it.text.slice(Math.max(0, i - 24), i + 40) + "…"; };
     const chipHref = (val) => { const set = new Set(f); set.has(val) ? set.delete(val) : set.add(val); const p = new URLSearchParams(); if (kw) p.set("q", kw); set.forEach((x) => p.append("f", x)); p.set("keep", "1"); return "#/search?" + p.toString(); };
@@ -573,15 +601,17 @@
       <div class="searchbox"><input id="kw" type="search" placeholder="スポット・料理・お土産・用語を検索" value="${esc(kw)}" enterkeyhint="search"></div>
       <div class="disc-top"><button class="dice" data-act="random"><i class="ph ph-shuffle"></i> ランダムで1つ発見</button><a class="favlink" href="#/favs"><i class="ph ph-star"></i> 気になる ${state.favs.filter((k) => k.startsWith("find:")).length}</a></div>
       <div class="cats">${Object.entries(FIND_CATS).map(([k, c]) => `<a class="pp ${cat === k ? "on" : ""}" href="${linkTo({ c: cat === k ? "" : k })}"><span class="pp-ic c-${c.color || "navy"}"><i class="ph ph-${c.icon}"></i></span>${c.label}</a>`).join("")}</div>
-      <div class="chips badge-chips">${Object.entries(FIND_BADGES).map(([k, b]) => `<a class="chip ${bad === k ? "on" : ""}" href="${linkTo({ b: bad === k ? "" : k })}"><i class="ph ph-${b.icon}"></i> ${b.label}</a>`).join("")}</div>`;
+      <div class="chips badge-chips">${Object.entries(FIND_BADGES).map(([k, b]) => `<a class="chip ${bad === k ? "on" : ""}" href="${linkTo({ b: bad === k ? "" : k })}"><i class="ph ph-${b.icon}"></i> ${b.label}</a>`).join("")}</div>
+      <div class="label-s" style="margin:16px 2px 8px">こんな人に</div>
+      <div class="fit-scroll">${Object.entries(FIND_FITS).map(([k, x]) => `<a class="fit ${fit === k ? "on" : ""}" href="${linkTo({ p: fit === k ? "" : k })}"><i class="ph ph-${x.icon}"></i>${x.label}</a>`).join("")}</div>`;
 
     let body = "";
     if (filtering) {
-      let fr = FINDS.filter((x) => (!cat || x.cat === cat) && (!bad || badgesOf(x).includes(bad)) && (!kw || findText(x).toLowerCase().includes(kw.toLowerCase())));
+      let fr = FINDS.filter((x) => (!cat || x.cat === cat) && (!bad || badgesOf(x).includes(bad)) && (!fit || fitsOf(x).includes(fit)) && (!kw || findText(x).toLowerCase().includes(kw.toLowerCase())));
       if (f.length) fr = [];
       if (bad === "near") fr.sort((x, y) => distKm(x) - distKm(y));
-      const others = (kw || f.length) && !cat && !bad ? searchIndex().filter((it) => (!kw || it.text.toLowerCase().includes(kw.toLowerCase())) && f.every((x) => it.facets.includes(x))) : [];
-      const label = [cat && FIND_CATS[cat].label, bad && FIND_BADGES[bad].label, kw && `「${kw}」`, ...f].filter(Boolean).join(" × ");
+      const others = (kw || f.length) && !cat && !bad && !fit ? searchIndex().filter((it) => (!kw || it.text.toLowerCase().includes(kw.toLowerCase())) && f.every((x) => it.facets.includes(x))) : [];
+      const label = [cat && FIND_CATS[cat].label, bad && FIND_BADGES[bad].label, fit && FIND_FITS[fit].label, kw && `「${kw}」`, ...f].filter(Boolean).join(" × ");
       body = `<div class="section-title">${esc(label)}：${fr.length + others.length} 件 <small><a href="#/search">条件をクリア</a></small></div>
         ${fr.length ? `<div class="card list-card">${fr.map(findRow).join("")}</div>` : ""}
         ${others.length ? `<div class="label-s">解説・用語・ツール</div><div class="card" style="padding:0 14px">${others.map((it) => `<a class="result" href="${it.href}"><span class="pill type ${it.cls}">${it.type}</span><div><h4>${hl(it.title)}</h4><p>${hl(snippet(it))}</p></div></a>`).join("")}</div>` : ""}
@@ -621,7 +651,7 @@
         const inp = $("#kw");
         let timer;
         inp.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => {
-          const p = new URLSearchParams(); if (inp.value) p.set("q", inp.value); if (cat) p.set("c", cat); if (bad) p.set("b", bad); f.forEach((x) => p.append("f", x)); p.set("keep", "1");
+          const p = new URLSearchParams(); if (inp.value) p.set("q", inp.value); if (cat) p.set("c", cat); if (bad) p.set("b", bad); if (fit) p.set("p", fit); f.forEach((x) => p.append("f", x)); p.set("keep", "1");
           history.replaceState(null, "", "#/search?" + p.toString()); render(); const n = $("#kw"); n.focus(); n.setSelectionRange(n.value.length, n.value.length);
         }, 250); });
       },
