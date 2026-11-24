@@ -82,16 +82,16 @@
 
   /* ---------------- アイコン ---------------- */
   const IC = {
-    home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>',
-    plan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h3M8 17h6"/></svg>',
-    map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6 9 4Z"/><path d="M9 4v14M15 6v14"/></svg>',
-    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
-    tools: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>',
-    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+    home: '<i class=\"ph ph-house\"></i>',
+    plan: '<i class=\"ph ph-calendar-dots\"></i>',
+    map: '<i class=\"ph ph-map-trifold\"></i>',
+    search: '<i class=\"ph ph-magnifying-glass\"></i>',
+    tools: '<i class=\"ph ph-squares-four\"></i>',
+    back: '<i class=\"ph ph-caret-left\"></i>',
     star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9-4.3-4.1 5.9-.8L12 3.5Z"/></svg>',
     starOn: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9-4.3-4.1 5.9-.8L12 3.5Z"/></svg>',
-    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v7.5h14V12"/></svg>',
-    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    share: '<i class=\"ph ph-export\"></i>',
+    close: '<i class=\"ph ph-x\"></i>',
   };
 
   /* ---------------- ルーター ---------------- */
@@ -180,8 +180,8 @@
           return `<a class="card ${cls}" href="#/plan/${di}?keep=1" style="display:block;color:inherit">
             <div class="label">${label}・${s.time}〜${s.end}</div>
             <h3>${esc(sum || s.title)}</h3>
-            ${opt?.move ? `<div class="muted">🚶 ${esc(opt.move)}</div>` : ""}
-            ${opt?.look ? `<div class="muted">👀 ${esc(opt.look)}</div>` : ""}
+            ${opt?.move ? `<div class="muted"><i class="ph ph-person-simple-walk"></i> ${esc(opt.move)}</div>` : ""}
+            ${opt?.look ? `<div class="muted"><i class="ph ph-eye"></i> ${esc(opt.look)}</div>` : ""}
             ${!sum ? `<div class="muted">まだ選んでいません（候補 ${s.options.length} 件）</div>` : ""}
           </a>`;
         };
@@ -205,26 +205,26 @@
       html: `
       <section class="hero">
         <div class="eyebrow">SHANGHAI ・ 2026.12.9 — 12.12</div>
-        <h2>上海 2026</h2>
+        <h2>上海 <span class="num">2026</span></h2>
         <p>${esc(TRIP.subtitle)}</p>
         ${hero}
       </section>
 
       <div class="quick">
-        <a href="#/tools/taxi"><span class="ic">🚕</span>タクシーに<br>見せる</a>
-        <a href="#/tools/phrase"><span class="ic">🥢</span>お店で<br>見せる</a>
-        <a href="#/tools/rate"><span class="ic">💴</span>為替<br>1元≒${state.rate}円</a>
-        <a href="#/tools/emergency"><span class="ic">🆘</span>緊急<br>連絡先</a>
+        <a href="#/tools/taxi"><span class="ic"><i class="ph ph-taxi"></i></span>タクシーに<br>見せる</a>
+        <a href="#/tools/phrase"><span class="ic"><i class="ph ph-bowl-food"></i></span>お店で<br>見せる</a>
+        <a href="#/tools/rate"><span class="ic"><i class="ph ph-currency-cny"></i></span>為替<br>1元≒${state.rate}円</a>
+        <a href="#/tools/emergency"><span class="ic"><i class="ph ph-siren"></i></span>緊急<br>連絡先</a>
       </div>
 
       ${main}
 
       <div class="section-title">今日の豆知識</div>
-      <div class="card trivia"><div class="label">💡 TRIVIA</div>${esc(trivia)}</div>
+      <div class="card trivia"><div class="label"><i class="ph ph-lightbulb"></i> 上海トリビア</div>${esc(trivia)}</div>
 
       <div class="section-title">読んでおきたい <small><a href="#/search">もっと探す ›</a></small></div>
       <div class="hscroll">
-        <a class="read-card" href="#/article/why"><div class="thumb red">why?</div><div class="body"><h4>${esc(ARTICLES.why.title)}</h4><p>${esc(ARTICLES.why.lead)}</p></div></a>
+        <a class="read-card" href="#/article/why"><div class="thumb red latin">why?</div><div class="body"><h4>${esc(ARTICLES.why.title)}</h4><p>${esc(ARTICLES.why.lead)}</p></div></a>
         <a class="read-card" href="#/spot/bund"><div class="thumb">外滩</div><div class="body"><h4>外灘</h4><p>${esc(SPOTS.bund.catch)}</p></div></a>
         <a class="read-card" href="#/spot/yuyuan"><div class="thumb jade">豫园</div><div class="body"><h4>豫園</h4><p>${esc(SPOTS.yuyuan.catch)}</p></div></a>
       </div>
@@ -334,10 +334,10 @@
         <div class="catch">${esc(s.catch)}</div>
       </section>
       <div class="actions">
-        <button class="action" data-act="show-taxi" data-zh="${esc(s.zh)}" data-addr="${esc(TAXI.find((t) => t.id === id)?.addr || "")}" data-ja="${esc(s.name)}">🚕 タクシーに見せる</button>
-        <a class="action" href="${amap}" target="_blank" rel="noopener">🗺 高徳地図</a>
-        <a class="action" href="${apple}" target="_blank" rel="noopener">🍎 Appleマップ</a>
-        <a class="action" href="#/map?focus=${id}">📍 位置関係</a>
+        <button class="action" data-act="show-taxi" data-zh="${esc(s.zh)}" data-addr="${esc(TAXI.find((t) => t.id === id)?.addr || "")}" data-ja="${esc(s.name)}"><i class="ph ph-taxi"></i> タクシーに見せる</button>
+        <a class="action" href="${amap}" target="_blank" rel="noopener"><i class="ph ph-map-trifold"></i> 高徳地図</a>
+        <a class="action" href="${apple}" target="_blank" rel="noopener"><i class="ph ph-map-pin"></i> Appleマップ</a>
+        <a class="action" href="#/map?focus=${id}"><i class="ph ph-map-pin-line"></i> 位置関係</a>
       </div>
       <div class="pills" style="margin:6px 0 10px">${s.themes.map((t) => `<a class="pill" href="#/search?f=${encodeURIComponent(t)}">${esc(t)}</a>`).join("")}${s.times.map((t) => `<span class="pill jade">${t}</span>`).join("")}</div>
 
@@ -352,11 +352,11 @@
         ${strip(x.html).length > 420 ? `<button class="fold-btn" data-act="fold">もっと読む ▾</button>` : ""}</div></section>`).join("")}
       </div>
 
-      <section class="card" id="sec-m"><h3 style="font-size:1.15rem;margin-bottom:8px">🔍 調査ミッション <span class="tiny">${done}/${s.missions.length}</span></h3>
+      <section class="card" id="sec-m"><h3 style="font-size:1.15rem;margin-bottom:8px"><i class="ph ph-magnifying-glass"></i> 調査ミッション <span class="tiny">${done}/${s.missions.length}</span></h3>
         ${s.missions.map((m, i) => `<div class="mission ${state.checks[`mission:${id}:${i}`] ? "on" : ""}" data-act="check" data-key="mission:${id}:${i}"><span class="check"></span><span>${esc(m)}</span></div>`).join("")}
       </section>
 
-      <section class="card" id="sec-q"><h3 style="font-size:1.15rem;margin-bottom:8px">❓ ${esc(s.name)}クイズ</h3>${s.quiz.map((q, i) => quizHtml(`${id}:${i}`, q)).join('<hr style="border:0;border-top:1px solid var(--line);margin:14px 0">')}</section>
+      <section class="card" id="sec-q"><h3 style="font-size:1.15rem;margin-bottom:8px"><i class="ph ph-question"></i> ${esc(s.name)}クイズ</h3>${s.quiz.map((q, i) => quizHtml(`${id}:${i}`, q)).join('<hr style="border:0;border-top:1px solid var(--line);margin:14px 0">')}</section>
 
       ${opts.length ? `<div class="section-title">この場所が入る予定の候補</div><div class="card related">${opts.map((o) => `<a href="#/plan/${o.dayIndex}">${esc(o.day.label)} ${esc(o.slot.title)}：${esc(o.title)}</a>`).join("")}</div>` : ""}
       <div class="section-title">関係する読み物</div>
@@ -369,7 +369,7 @@
     return `<div class="quiz-q">${esc(q.q)}</div><div class="quiz-a">${q.a.map((a, i) => {
       let cls = ""; if (ans != null) { if (i === q.correct) cls = "right"; else if (i === ans) cls = "wrong"; }
       return `<button class="${cls}" data-act="quiz" data-key="${key}" data-i="${i}" ${ans != null ? "disabled" : ""}>${esc(a)}</button>`;
-    }).join("")}</div>${ans != null ? `<div class="quiz-ex">${ans === q.correct ? "⭕ 正解！" : "❌ 残念"} ${esc(q.ex)}</div>` : ""}`;
+    }).join("")}</div>${ans != null ? `<div class="quiz-ex">${ans === q.correct ? "正解！" : "残念"} ${esc(q.ex)}</div>` : ""}`;
   }
 
   /* ---------------- 読み物・用語 ---------------- */
@@ -514,9 +514,9 @@
       <div class="tiny" style="margin-top:8px">※ 試作の概略図です。位置はおおよそ。昔の地図の範囲も目安です。</div>
       <div class="section-title">中心部の外</div>
       <div class="offmap">
-        <div><span>🏰 上海ディズニーランド</span><span class="muted">ホテルから南東へ約30km</span></div>
-        <div><span>✈️ 浦東空港</span><span class="muted">ホテルから東へ約40km</span></div>
-        <div><span>🚄 龍陽路駅（リニア）</span><span class="muted">陸家嘴から南東へ約8km</span></div>
+        <div><span><i class="ph ph-castle-turret"></i>上海ディズニーランド</span><span class="muted">ホテルから南東へ約30km</span></div>
+        <div><span><i class="ph ph-airplane"></i>浦東空港</span><span class="muted">ホテルから東へ約40km</span></div>
+        <div><span><i class="ph ph-train"></i>龍陽路駅（リニア）</span><span class="muted">陸家嘴から南東へ約8km</span></div>
       </div>`,
       after() { if (focus) showPin(PLACES.find((p) => p.spot === focus || p.id === focus)?.id); },
     };
@@ -533,30 +533,30 @@
   PAGES.tools = (args) => {
     const sub = args[0];
     if (sub && TOOLS[sub]) return TOOLS[sub]();
-    const t = (href, ic, b, s) => `<a class="tool" href="${href}"><span class="ic">${ic}</span><b>${b}</b><small>${s}</small></a>`;
+    const t = (href, ic, b, s) => `<a class="tool" href="${href}"><span class="ic"><i class="ph ph-${ic}"></i></span><b>${b}</b><small>${s}</small></a>`;
     return {
       title: "ツール",
       html: `<div class="section-title" style="margin-top:6px">旅行中によく使う</div>
       <div class="toolgrid">
-        ${t("#/tools/taxi", "🚕", "タクシーに見せる", "行き先を中国語で大きく表示")}
-        ${t("#/tools/phrase", "🥢", "お店で見せる", "パクチー抜き・八角抜きなど")}
-        ${t("#/tools/rate", "💴", "為替の計算", `1元 ≒ ${state.rate}円`)}
-        ${t("#/tools/emergency", "🆘", "緊急連絡先", "警察・救急・総領事館")}
+        ${t("#/tools/taxi", "taxi", "タクシーに見せる", "行き先を中国語で大きく表示")}
+        ${t("#/tools/phrase", "bowl-food", "お店で見せる", "パクチー抜き・八角抜きなど")}
+        ${t("#/tools/rate", "currency-cny", "為替の計算", `1元 ≒ ${state.rate}円`)}
+        ${t("#/tools/emergency", "siren", "緊急連絡先", "警察・救急・総領事館")}
       </div>
       <div class="section-title">準備と記録</div>
       <div class="toolgrid">
-        ${t("#/tools/check", "✅", "準備・持ち物", "出発前のやることと持ち物")}
-        ${t("#/tools/missions", "🔍", "調査ミッション", "現地で探すお題")}
-        ${t("#/tools/quiz", "❓", "上海クイズ", "4人で遊べる")}
-        ${t("#/tools/notes", "📝", "調査ノート", "日ごとのメモと気づき")}
-        ${t("#/favs", "⭐", "お気に入り", `${state.favs.length} 件`)}
-        ${t("#/tools/settings", "⚙️", "設定", "文字の大きさ・日時を試す")}
+        ${t("#/tools/check", "check-square", "準備・持ち物", "出発前のやることと持ち物")}
+        ${t("#/tools/missions", "magnifying-glass", "調査ミッション", "現地で探すお題")}
+        ${t("#/tools/quiz", "question", "上海クイズ", "4人で遊べる")}
+        ${t("#/tools/notes", "note-pencil", "調査ノート", "日ごとのメモと気づき")}
+        ${t("#/favs", "star", "お気に入り", `${state.favs.length} 件`)}
+        ${t("#/tools/settings", "gear", "設定", "文字の大きさ・日時を試す")}
       </div>`,
     };
   };
   PAGES.favs = () => ({
     title: "お気に入り",
-    html: state.favs.length ? `<div class="card related">${state.favs.map((k) => { const [t, id] = k.split(":"); const title = t === "spot" ? SPOTS[id]?.name : t === "article" ? ARTICLES[id]?.title : TERMS[id]?.name; return `<a href="${hrefOfKey(k)}">${esc(title || k)}</a>`; }).join("")}</div>` : `<div class="empty">ページ右上の ☆ を押すと、ここに集まります</div>`,
+    html: state.favs.length ? `<div class="card related">${state.favs.map((k) => { const [t, id] = k.split(":"); const title = t === "spot" ? SPOTS[id]?.name : t === "article" ? ARTICLES[id]?.title : TERMS[id]?.name; return `<a href="${hrefOfKey(k)}">${esc(title || k)}</a>`; }).join("")}</div>` : `<div class="empty">ページ右上の星マークを押すと、ここに集まります</div>`,
   });
 
   const TOOLS = {
@@ -609,7 +609,7 @@
       const answered = all.filter((x) => state.quiz[x.key] != null); const right = answered.filter((x) => state.quiz[x.key] === x.q.correct).length;
       return {
         title: "上海クイズ",
-        html: `<div class="card" style="text-align:center"><div class="tiny">正解数</div><div style="font-family:var(--serif);font-size:2.2rem;color:var(--red)">${right} / ${all.length}</div><button class="toggle-link" data-act="quiz-reset">もう一度やる</button></div>
+        html: `<div class="card" style="text-align:center"><div class="tiny">正解数</div><div class="quiz-score" style="font-size:2.2rem;color:var(--red)">${right} / ${all.length}</div><button class="toggle-link" data-act="quiz-reset">もう一度やる</button></div>
         ${all.map((x) => `<div class="card"><span class="pill">${esc(x.spot)}</span>${quizHtml(x.key, x.q)}</div>`).join("")}`,
       };
     },
