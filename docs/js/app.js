@@ -145,6 +145,17 @@
   }
   const hrefOfKey = (key) => "#/" + key.replace(":", "/");
 
+  /* ホームの「読んでおきたい」：読み物とスポットを並べる */
+  function readCards() {
+    const items = [
+      ...Object.entries(ARTICLES).map(([id, a]) => ({ href: `#/article/${id}`, big: a.hero?.big || "", color: a.hero?.color || "red", latin: /^[a-z?]+$/i.test(a.hero?.big || ""), title: a.title, text: a.lead })),
+      ...Object.entries(SPOTS).map(([id, sp]) => ({ href: `#/spot/${id}`, big: sp.hero.big, color: sp.color ?? (id === "yuyuan" ? "red" : ""), title: sp.name, text: sp.catch })),
+    ];
+    // 出発前は準備の記事を先頭に
+    if (phase() === "before") items.sort((x, y) => (y.href === "#/article/prep") - (x.href === "#/article/prep"));
+    return items.map((it) => `<a class="read-card" href="${it.href}"><div class="thumb ${it.color} ${it.latin ? "latin" : ""}">${esc(it.big)}</div><div class="body"><h4>${esc(it.title)}</h4><p>${esc(it.text)}</p></div></a>`).join("");
+  }
+
   /* ---------------- ホーム ---------------- */
   PAGES.home = () => {
     const ph = phase();
@@ -231,9 +242,7 @@
 
       <div class="section-title">読んでおきたい <small><a href="#/search">もっと探す ›</a></small></div>
       <div class="hscroll">
-        <a class="read-card" href="#/article/why"><div class="thumb red latin">why?</div><div class="body"><h4>${esc(ARTICLES.why.title)}</h4><p>${esc(ARTICLES.why.lead)}</p></div></a>
-        <a class="read-card" href="#/spot/bund"><div class="thumb">外滩</div><div class="body"><h4>外灘</h4><p>${esc(SPOTS.bund.catch)}</p></div></a>
-        <a class="read-card" href="#/spot/yuyuan"><div class="thumb jade">豫园</div><div class="body"><h4>豫園</h4><p>${esc(SPOTS.yuyuan.catch)}</p></div></a>
+        ${readCards()}
       </div>
 
       ${state.hist.length ? `<div class="section-title">最近見たページ</div>
@@ -267,7 +276,7 @@
     const slotHtml = (s) => {
       const time = `<div class="time">${s.time}<small>〜${s.end}</small></div>${node(s)}`;
       if (s.type === "fixed") {
-        return `<div class="slot fixed">${time}<div class="card"><div class="kicker">決定</div><h3>${esc(s.title)}</h3>${s.note ? `<div class="muted">${esc(s.note)}</div>` : ""}</div></div>`;
+        return `<div class="slot fixed">${time}<div class="card"><div class="kicker">決定</div><h3>${esc(s.title)}</h3>${s.note ? `<div class="muted">${esc(s.note)}</div>` : ""}${s.spot && SPOTS[s.spot] ? `<a class="toggle-link" href="#/spot/${s.spot}">${esc(SPOTS[s.spot].name)}の解説を読む ›</a>` : ""}</div></div>`;
       }
       if (s.type === "choice") {
         const o = chosenOf(s);
@@ -368,7 +377,7 @@
     const id = args[0]; const s = SPOTS[id];
     if (!s) return { title: "見つかりません", html: `<div class="empty">このページは準備中です</div>` };
     const done = s.missions.filter((_, i) => state.checks[`mission:${id}:${i}`]).length;
-    const color = id === "yuyuan" ? "red" : "";
+    const color = s.color ?? (id === "yuyuan" ? "red" : "");
     const amap = `https://uri.amap.com/search?keyword=${encodeURIComponent(s.zh)}&city=${encodeURIComponent("上海")}`;
     const apple = `https://maps.apple.com/?q=${encodeURIComponent(s.zh)}&ll=${s.lat},${s.lng}`;
     const opts = allOptions().filter((o) => o.spot === id);
@@ -380,7 +389,7 @@
         <div class="big">${esc(s.hero.big)}</div>
         <div class="sub">${esc(s.hero.sub)}</div>
         <h2>${esc(s.name)}</h2>
-        <div class="read">${esc(s.read)} ・ ${esc(s.zh)} ${esc(s.pinyin)} ・ ${esc(s.en)}</div>
+        <div class="read">${[s.read, `${s.zh} ${s.pinyin}`, s.en].filter(Boolean).map(esc).join(" ・ ")}</div>
         <div class="catch">${esc(s.catch)}</div>
       </section>
       <div class="actions">
@@ -429,7 +438,7 @@
     if (!a) return { title: "見つかりません", html: `<div class="empty">このページは準備中です</div>` };
     return {
       title: a.title, fav: `article:${args[0]}`,
-      html: `<section class="spot-hero red"><div class="big" style="font-size:3rem">why?</div><div class="sub">THEME OF THIS TRIP</div><h2>${esc(a.title)}</h2><div class="catch">${esc(a.lead)}</div></section>
+      html: `<section class="spot-hero ${a.hero?.color || "red"}"><div class="big" style="font-size:3rem">${esc(a.hero?.big || "")}</div><div class="sub">${esc(a.hero?.sub || "")}</div><h2>${esc(a.title)}</h2><div class="catch">${esc(a.lead)}</div></section>
       <div class="pills" style="margin:14px 0 10px">${a.themes.map((t) => `<a class="pill" href="#/search?f=${encodeURIComponent(t)}">${esc(t)}</a>`).join("")}</div>
       <div class="card article">${linkify(a.html)}</div>`,
     };
@@ -567,7 +576,8 @@
       <div class="tiny" style="margin-top:8px">※ 試作の概略図です。位置はおおよそ。昔の地図の範囲も目安です。</div>
       <div class="section-title">中心部の外</div>
       <div class="offmap">
-        <div><span><i class="ph ph-castle-turret"></i>上海ディズニーランド</span><span class="muted">ホテルから南東へ約30km</span></div>
+        <a href="#/spot/disney" style="color:inherit"><div><span><i class="ph ph-castle-turret"></i>上海ディズニーランド</span><span class="muted">ホテルから南東へ約30km ›</span></div></a>
+        <a href="#/spot/acrobat" style="color:inherit"><div><span><i class="ph ph-star"></i>上海馬戯城（雑技）</span><span class="muted">ホテルから北へ約6km ›</span></div></a>
         <div><span><i class="ph ph-airplane"></i>浦東空港</span><span class="muted">ホテルから東へ約40km</span></div>
         <div><span><i class="ph ph-train"></i>龍陽路駅（リニア）</span><span class="muted">陸家嘴から南東へ約8km</span></div>
       </div>`,

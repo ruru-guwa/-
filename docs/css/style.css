@@ -484,3 +484,12 @@ textarea { width: 100%; min-height: 110px; font: inherit; font-size: .95rem; pad
 .fab { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: calc(var(--tabbar-h) + 16px + env(safe-area-inset-bottom)); z-index: 25;
   width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--red); color: #fff; font-size: 26px; display: grid; place-items: center; cursor: pointer;
   box-shadow: 0 2px 6px rgba(28, 34, 48, .25); }
+
+/* 見出し帯・読み物カードの色の種類 */
+.spot-hero.jade { background: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 26px), #2f6b5e; }
+.spot-hero.gold { background: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 26px), #7d5a1f; }
+.spot-hero.rose { background: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 26px), #9b3f66; }
+.read-card .thumb.gold { background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 16px), #7d5a1f; }
+.read-card .thumb.rose { background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 16px), #9b3f66; }
+.offmap a > div { transition: background .15s; }
+.offmap a:active > div { background: #f3f6fb; }
