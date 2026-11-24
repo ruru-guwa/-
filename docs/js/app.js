@@ -85,7 +85,7 @@
     home: '<i class=\"ph ph-house\"></i>',
     plan: '<i class=\"ph ph-calendar-dots\"></i>',
     map: '<i class=\"ph ph-map-trifold\"></i>',
-    search: '<i class=\"ph ph-magnifying-glass\"></i>',
+    search: '<i class=\"ph ph-compass\"></i>',
     tools: '<i class=\"ph ph-squares-four\"></i>',
     back: '<i class=\"ph ph-caret-left\"></i>',
     star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9-4.3-4.1 5.9-.8L12 3.5Z"/></svg>',
@@ -99,7 +99,7 @@
     { id: "home", label: "ホーム", href: "#/home" },
     { id: "plan", label: "予定", href: "#/plan" },
     { id: "map", label: "地図", href: "#/map" },
-    { id: "search", label: "探す", href: "#/search" },
+    { id: "search", label: "発見", href: "#/search" },
     { id: "tools", label: "ツール", href: "#/tools" },
   ];
   function parse() {
@@ -111,7 +111,7 @@
     const p = parts[0];
     if (["plan"].includes(p)) return "plan";
     if (["map"].includes(p)) return "map";
-    if (["search", "spot", "article", "term"].includes(p)) return "search";
+    if (["search", "spot", "article", "term", "find"].includes(p)) return "search";
     if (["tools", "favs"].includes(p)) return "tools";
     return "home";
   }
@@ -144,6 +144,56 @@
     save("hist");
   }
   const hrefOfKey = (key) => "#/" + key.replace(":", "/");
+
+  /* ---------------- 発見（FINDS）の小道具 ---------------- */
+  function kmBetween(lat1, lng1, lat2, lng2) {
+    const R = 6371, r = (d) => (d * Math.PI) / 180;
+    const a = Math.sin(r(lat2 - lat1) / 2) ** 2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lng2 - lng1) / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+  const hasPos = (f) => f.lat != null && f.lng != null;
+  const distKm = (f) => (hasPos(f) ? kmBetween(TRIP.hotel.lat, TRIP.hotel.lng, f.lat, f.lng) : null);
+  function bearing(f) { // ホテルから見た方角（8方位）
+    const north = (f.lat - TRIP.hotel.lat) * 111, east = (f.lng - TRIP.hotel.lng) * 95;
+    const deg = ((Math.atan2(east, north) * 180) / Math.PI + 360) % 360;
+    return ["北", "北東", "東", "南東", "南", "南西", "西", "北西"][Math.round(deg / 45) % 8];
+  }
+  function howFar(f) { // 目安。道のりは直線の約1.3倍で計算
+    const d = distKm(f);
+    if (d == null) return "";
+    if (d < 1.3) return `ホテルから約${Math.max(0.3, d).toFixed(1)}km・歩いて約${Math.max(5, Math.round((d * 1.3 / 4.5) * 12) * 5)}分`;
+    const mins = Math.round((d * 1.3 * (d > 10 ? 1.5 : 2.4) + 5) / 5) * 5;
+    return `ホテルから${bearing(f)}へ約${d < 10 ? d.toFixed(1) : Math.round(d)}km・タクシーで約${mins}分`;
+  }
+  const isNear = (f) => { const d = distKm(f); return d != null && d < 1.3; };
+  const badgesOf = (f) => [...(f.badges || []), ...(isNear(f) ? ["near"] : [])];
+  const findHref = (f) => f.link || `#/find/${f.id}`;
+  const badgeHtml = (b) => `<span class="fb fb-${b}"><i class="ph ph-${FIND_BADGES[b].icon}"></i>${FIND_BADGES[b].label}</span>`;
+  const isLatin = (t) => /^[A-Za-z0-9 ]+$/.test(t);
+  function findCard(f) { // 横に流れるカード
+    const c = FIND_CATS[f.cat];
+    return `<a class="find-card" href="${findHref(f)}">
+      <div class="fc-art c-${c.color || "navy"} ${isLatin(f.big) ? "latin" : ""}"><span class="fc-cat"><i class="ph ph-${c.icon}"></i>${c.label}</span><b>${esc(f.big)}</b></div>
+      <div class="fc-body"><div class="fc-badges">${badgesOf(f).slice(0, 2).map(badgeHtml).join("")}</div><h4>${esc(f.name)}</h4><p>${esc(f.catch)}</p></div></a>`;
+  }
+  function findRow(f) { // 一覧の行
+    const c = FIND_CATS[f.cat];
+    const far = howFar(f);
+    return `<a class="find-row" href="${findHref(f)}"><span class="fr-ic c-${c.color || "navy"}"><i class="ph ph-${c.icon}"></i></span>
+      <div class="fr-body"><div class="fc-badges">${badgesOf(f).map(badgeHtml).join("")}</div><h4>${esc(f.name)}</h4><p>${esc(f.catch)}</p>${far ? `<small><i class="ph ph-map-pin"></i> ${far}</small>` : ""}</div></a>`;
+  }
+  const findText = (f) => [f.name, f.zh, f.catch, strip(f.about || ""), ...(f.points || []).map(strip), ...(f.tips || []).map(strip), f.japan || "", ...(f.basics || []).flat()].join(" ");
+  function todaysFind() { // 日替わりで1つ（詳しい解説ページがあるものは除く）
+    const pool = FINDS.filter((f) => !f.link);
+    return pool[(Math.floor(now().getTime() / 86400000) * 7) % pool.length];
+  }
+  let lastRandom = "";
+  function randomFind() {
+    const pool = FINDS.filter((f) => f.id !== lastRandom);
+    const f = pool[Math.floor(Math.random() * pool.length)];
+    lastRandom = f.id;
+    location.hash = findHref(f);
+  }
 
   /* ホームの「読んでおきたい」：読み物とスポットを並べる */
   function readCards() {
@@ -209,10 +259,7 @@
       }
     } else {
       hero = `<div class="count"><span>おかえりなさい</span></div>`;
-      main = `
-        <div class="section-title">旅のふりかえり</div>
-        <a class="card" href="#/tools/notes" style="display:block;color:inherit"><b>調査ノートを書く</b><div class="muted">「上海はなぜ大都市になったのか」— 4日間で見たものから、自分たちの答えを</div></a>
-        <a class="card" href="#/tools/missions" style="display:block;color:inherit"><b>調査ミッションの結果</b><div class="muted">達成 ${Object.keys(state.checks).filter((k) => k.startsWith("mission:") && state.checks[k]).length} 件</div></a>`;
+      main = `<a class="nextup" href="#/tools/quiz"><span class="nu-ic"><i class="ph ph-question"></i></span><span class="nu-body"><small>旅をふりかえる</small><b>上海クイズで、4日間で見たものをおさらい</b></span><i class="ph ph-caret-right"></i></a>`;
     }
 
     const dayN = Math.floor(n.getTime() / 86400000);
@@ -237,10 +284,23 @@
 
       ${main}
 
+      <div class="section-title">今日の発見 <small><a href="#/search">もっと発見 ›</a></small></div>
+      ${(() => { const f = todaysFind(); const c = FIND_CATS[f.cat]; return `<a class="pick" href="${findHref(f)}"><div class="pick-art c-${c.color || "navy"} ${isLatin(f.big) ? "latin" : ""}"><b>${esc(f.big)}</b></div><div class="pick-body"><div class="fc-badges">${badgesOf(f).map(badgeHtml).join("")}</div><h3>${esc(f.name)}</h3><p>${esc(f.catch)}</p></div></a>`; })()}
+      <button class="dice" data-act="random"><i class="ph ph-shuffle"></i> ランダムで1つ発見する</button>
+
+      <div class="section-title">今ホット <small><a href="#/search?b=hot">すべて ›</a></small></div>
+      <div class="hscroll">${FINDS.filter((f) => badgesOf(f).includes("hot")).map(findCard).join("")}</div>
+
+      <div class="section-title">穴場 <small><a href="#/search?b=hidden">すべて ›</a></small></div>
+      <div class="hscroll">${FINDS.filter((f) => badgesOf(f).includes("hidden")).map(findCard).join("")}</div>
+
+      <div class="section-title">お土産 <small><a href="#/search?c=souvenir">すべて ›</a></small></div>
+      <div class="hscroll">${FINDS.filter((f) => f.cat === "souvenir").map(findCard).join("")}</div>
+
       <div class="section-title">今日の豆知識</div>
       <div class="card trivia"><div class="label"><i class="ph ph-lightbulb"></i> 上海トリビア</div>${esc(trivia)}</div>
 
-      <div class="section-title">読んでおきたい <small><a href="#/search">もっと探す ›</a></small></div>
+      <div class="section-title">詳しい解説と読み物 <small><a href="#/search">もっと見る ›</a></small></div>
       <div class="hscroll">
         ${readCards()}
       </div>
@@ -248,17 +308,6 @@
       ${state.hist.length ? `<div class="section-title">最近見たページ</div>
       <div class="card related">${state.hist.slice(0, 5).map((h) => `<a href="${hrefOfKey(h.key)}">${esc(h.title)}</a>`).join("")}</div>` : ""}
 
-      <div class="section-title">この旅のメンバー</div>
-      <div class="members">${TRIP.members.map((m) => `<div class="member">${avatar(m.id)}${esc(m.name)}</div>`).join("")}</div>
-
-      <div class="section-title">旅の基本</div>
-      <div class="card">
-        <table class="kv">
-          ${TRIP.flights.map((f) => `<tr><th>${f.label} ${f.date}</th><td>${f.from} ${f.dep}<br>→ ${f.to} ${f.arr}<br><span class="tiny">${f.airline}</span></td></tr>`).join("")}
-          <tr><th>ホテル</th><td>${TRIP.hotel.name}<br><span class="tiny">${TRIP.hotel.addressJa}</span></td></tr>
-          <tr><th>時差</th><td>上海は日本より <b>1時間遅い</b></td></tr>
-        </table>
-      </div>
       <p class="tiny" style="text-align:center;margin-top:20px">試作版 ・ 表示中の時刻：${sh.date} ${String(Math.floor(sh.min / 60)).padStart(2, "0")}:${String(sh.min % 60).padStart(2, "0")}（上海）${state.nowOverride ? "・日時を試し中" : ""}</p>`,
     };
   };
@@ -376,7 +425,6 @@
   PAGES.spot = (args) => {
     const id = args[0]; const s = SPOTS[id];
     if (!s) return { title: "見つかりません", html: `<div class="empty">このページは準備中です</div>` };
-    const done = s.missions.filter((_, i) => state.checks[`mission:${id}:${i}`]).length;
     const color = s.color ?? (id === "yuyuan" ? "red" : "");
     const amap = `https://uri.amap.com/search?keyword=${encodeURIComponent(s.zh)}&city=${encodeURIComponent("上海")}`;
     const apple = `https://maps.apple.com/?q=${encodeURIComponent(s.zh)}&ll=${s.lat},${s.lng}`;
@@ -403,7 +451,7 @@
       <div class="card"><table class="kv">${s.basics.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v}</td></tr>`).join("")}</table>
       <div class="tiny" style="margin-top:6px">料金・時間は2026年11月時点の調べ。出発前にもう一度確認します。</div></div>
 
-      <div class="card"><div class="tiny" style="margin-bottom:6px">目次</div><div class="toc">${s.sections.map((x, i) => `<a href="#sec-${i}" data-act="jump" data-to="sec-${i}">${esc(x.h)}</a>`).join("")}<a href="#sec-m" data-act="jump" data-to="sec-m">調査ミッション</a><a href="#sec-q" data-act="jump" data-to="sec-q">クイズ</a></div></div>
+      <div class="card"><div class="tiny" style="margin-bottom:6px">目次</div><div class="toc">${s.sections.map((x, i) => `<a href="#sec-${i}" data-act="jump" data-to="sec-${i}">${esc(x.h)}</a>`).join("")}<a href="#sec-q" data-act="jump" data-to="sec-q">クイズ</a></div></div>
 
       <div class="article">
       ${s.sections.map((x, i) => `<section class="card" id="sec-${i}"><h3>${esc(x.h)}</h3>
@@ -411,13 +459,10 @@
         ${strip(x.html).length > 420 ? `<button class="fold-btn" data-act="fold">もっと読む ▾</button>` : ""}</div></section>`).join("")}
       </div>
 
-      <section class="card" id="sec-m"><h3 style="font-size:1.15rem;margin-bottom:8px"><i class="ph ph-magnifying-glass"></i> 調査ミッション <span class="tiny">${done}/${s.missions.length}</span></h3>
-        ${s.missions.map((m, i) => `<div class="mission ${state.checks[`mission:${id}:${i}`] ? "on" : ""}" data-act="check" data-key="mission:${id}:${i}"><span class="check"></span><span>${esc(m)}</span></div>`).join("")}
-      </section>
-
       <section class="card" id="sec-q"><h3 style="font-size:1.15rem;margin-bottom:8px"><i class="ph ph-question"></i> ${esc(s.name)}クイズ</h3>${s.quiz.map((q, i) => quizHtml(`${id}:${i}`, q)).join('<hr style="border:0;border-top:1px solid var(--line);margin:14px 0">')}</section>
 
       ${opts.length ? `<div class="section-title">この場所が入る予定の候補</div><div class="card related">${opts.map((o) => `<a href="#/plan/${o.dayIndex}">${esc(o.day.label)} ${esc(o.slot.title)}：${esc(o.title)}</a>`).join("")}</div>` : ""}
+      ${(() => { const near = FINDS.filter((f) => f.id !== id && hasPos(f)).map((f) => ({ f, d: kmBetween(s.lat, s.lng, f.lat, f.lng) })).sort((a, b) => a.d - b.d).slice(0, 4); return near.length ? `<div class="section-title">近くの発見</div><div class="card list-card">${near.map(({ f }) => findRow(f)).join("")}</div>` : ""; })()}
       <div class="section-title">関係する読み物</div>
       <div class="card related"><a href="#/article/why">${esc(ARTICLES.why.title)}</a>${Object.entries(TERMS).filter(([tid]) => s.sections.some((x) => x.html.includes(`term:${tid}|`))).map(([tid, t]) => `<a href="#/term/${tid}">用語：${esc(t.name)}</a>`).join("")}</div>
       <button class="fab" data-act="show-taxi" data-zh="${esc(s.zh)}" data-addr="${esc(TAXI.find((t) => t.id === id)?.addr || "")}" data-ja="${esc(s.name)}" aria-label="タクシーに見せる"><i class="ph ph-taxi"></i></button>`,
@@ -457,50 +502,126 @@
     };
   };
 
+  /* ---------------- 発見の詳しいページ ---------------- */
+  PAGES.find = (args) => {
+    const f = FINDS.find((x) => x.id === args[0]);
+    if (!f) return { title: "見つかりません", html: `<div class="empty">このページは準備中です</div>` };
+    if (f.link) return { title: f.name, html: `<a class="cta" href="${f.link}"><i class="ph ph-book-open-text"></i> 詳しい解説ページを開く</a>` };
+    const c = FIND_CATS[f.cat];
+    const far = howFar(f);
+    const zhMain = f.zh.split(/\s*[／/]\s*/)[0];
+    const amap = `https://uri.amap.com/search?keyword=${encodeURIComponent(zhMain)}&city=${encodeURIComponent("上海")}`;
+    const apple = hasPos(f) ? `https://maps.apple.com/?q=${encodeURIComponent(zhMain)}&ll=${f.lat},${f.lng}` : null;
+    const near = hasPos(f) ? FINDS.filter((x) => x.id !== f.id && hasPos(x)).map((x) => ({ x, d: kmBetween(f.lat, f.lng, x.lat, x.lng) })).sort((a, b) => a.d - b.d).slice(0, 4).map((o) => o.x) : [];
+    const same = FINDS.filter((x) => x.id !== f.id && x.cat === f.cat);
+    const list = (arr) => `<ul>${arr.map((t) => `<li>${t}</li>`).join("")}</ul>`;
+    return {
+      title: f.name, fav: `find:${f.id}`,
+      html: `
+      <section class="spot-hero ${c.color}">
+        <div class="big ${isLatin(f.big) ? "latin" : ""}">${esc(f.big)}</div>
+        <div class="sub">${esc(c.label)} ・ DISCOVER SHANGHAI</div>
+        <h2>${esc(f.name)}</h2>
+        <div class="read">${esc(f.zh)}</div>
+        <div class="catch">${esc(f.catch)}</div>
+      </section>
+      <div class="fc-badges" style="margin:14px 0 2px">${badgesOf(f).map(badgeHtml).join("")}</div>
+      <div class="actions">
+        <button class="action" data-act="show-taxi" data-zh="${esc(zhMain)}" data-addr="" data-ja="${esc(f.name)}"><i class="ph ph-taxi"></i> タクシーに見せる</button>
+        <a class="action" href="${amap}" target="_blank" rel="noopener"><i class="ph ph-map-trifold"></i> 高徳地図</a>
+        ${apple ? `<a class="action" href="${apple}" target="_blank" rel="noopener"><i class="ph ph-map-pin"></i> Appleマップ</a>` : ""}
+        ${hasPos(f) ? `<a class="action" href="#/map?focus=f:${f.id}"><i class="ph ph-map-pin-line"></i> 位置関係</a>` : ""}
+      </div>
+      <div class="card"><table class="kv">${(f.basics || []).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v}</td></tr>`).join("")}${far ? `<tr><th>ホテルから</th><td>${far.replace(/^ホテルから/, "")}（目安）</td></tr>` : ""}</table>
+      <div class="tiny" style="margin-top:6px">2026年11月時点の調べ。料金・時間は行く前に確認します。</div></div>
+      <div class="article">
+        ${f.about ? `<section class="card"><h3>どんな所</h3>${f.about}</section>` : ""}
+        ${f.points?.length ? `<section class="card"><h3>ここが面白い</h3>${list(f.points)}</section>` : ""}
+        ${f.japan ? `<section class="card"><h3>日本とのつながり</h3><p>${f.japan}</p></section>` : ""}
+        ${f.tips?.length ? `<section class="card"><h3>楽しみ方のコツ</h3>${list(f.tips)}</section>` : ""}
+      </div>
+      ${near.length ? `<div class="section-title">近くの発見</div><div class="card list-card">${near.map(findRow).join("")}</div>` : ""}
+      ${same.length ? `<div class="section-title">ほかの「${esc(c.label)}」 <small><a href="#/search?c=${f.cat}">すべて ›</a></small></div><div class="hscroll">${same.map(findCard).join("")}</div>` : ""}
+      <button class="dice" data-act="random" style="margin-top:18px"><i class="ph ph-shuffle"></i> ほかのものをランダムで発見する</button>`,
+    };
+  };
+
   /* ---------------- 探す ---------------- */
-  const PURPOSE_IC = { "食べる": "bowl-food", "見る": "binoculars", "歩く": "person-simple-walk", "買う": "shopping-bag", "休む": "coffee", "夜を楽しむ": "moon-stars", "学ぶ": "book-open-text", "移動を楽しむ": "train-simple" };
   function searchIndex() {
     const items = [];
-    Object.entries(SPOTS).forEach(([id, s]) => items.push({ type: "スポット", cls: "red", href: `#/spot/${id}`, title: s.name, sub: s.catch, text: [s.name, s.zh, s.en, s.read, s.catch, ...s.sections.map((x) => x.h + " " + strip(x.html)), ...s.missions].join(" "), facets: [...s.purposes, ...s.themes, ...s.times, s.area] }));
+    Object.entries(SPOTS).forEach(([id, s]) => items.push({ type: "スポット", cls: "red", href: `#/spot/${id}`, title: s.name, sub: s.catch, text: [s.name, s.zh, s.en, s.read, s.catch, ...s.sections.map((x) => x.h + " " + strip(x.html))].join(" "), facets: [...s.purposes, ...s.themes, ...s.times, s.area] }));
     Object.entries(ARTICLES).forEach(([id, a]) => items.push({ type: "読み物", cls: "", href: `#/article/${id}`, title: a.title, sub: a.lead, text: a.title + " " + a.lead + " " + strip(a.html), facets: [...a.themes, "学ぶ"] }));
     Object.entries(TERMS).forEach(([id, t]) => items.push({ type: "用語", cls: "gray", href: `#/term/${id}`, title: t.name, sub: strip(t.html).slice(0, 60) + "…", text: t.name + " " + t.read + " " + strip(t.html), facets: ["学ぶ", "歴史"] }));
     allOptions().forEach((o) => items.push({ type: "予定の候補", cls: "jade", href: `#/plan/${o.dayIndex}`, title: o.title, sub: `${o.day.label} ${o.slot.title}・${o.why || ""}`, text: [o.title, o.why, o.look, o.move].join(" "), facets: o.tags || [] }));
-    [["タクシーに見せる", "#/tools/taxi", "行き先を中国語で大きく表示"], ["お店で見せる", "#/tools/phrase", "パクチー抜き・八角抜き 不要香菜"], ["為替の計算", "#/tools/rate", "人民元 円 換算"], ["緊急連絡先", "#/tools/emergency", "警察 救急 総領事館"], ["持ち物・準備チェック", "#/tools/check", "持ち物 準備 Alipay eSIM"], ["調査ノート", "#/tools/notes", "メモ 調査"]]
+    [["タクシーに見せる", "#/tools/taxi", "行き先を中国語で大きく表示"], ["お店で見せる", "#/tools/phrase", "パクチー抜き・八角抜き 不要香菜"], ["為替の計算", "#/tools/rate", "人民元 円 換算"], ["緊急連絡先", "#/tools/emergency", "警察 救急 総領事館"], ["持ち物・準備チェック", "#/tools/check", "持ち物 準備 Alipay eSIM"]]
       .forEach(([t, h, x]) => items.push({ type: "ツール", cls: "gray", href: h, title: t, sub: x, text: t + " " + x, facets: [] }));
     PHRASES.forEach((p) => items.push({ type: "フレーズ", cls: "gray", href: "#/tools/phrase", title: p.ja, sub: p.zh + "  " + p.py, text: p.ja + p.zh + p.py, facets: [] }));
     return items;
   }
   PAGES.search = (_, q) => {
-    const kw = q.get("q") || "";
+    const kw = (q.get("q") || "").trim();
+    const cat = q.get("c") || "";
+    const bad = q.get("b") || "";
     const f = q.getAll("f");
-    let results = [];
-    if (kw || f.length) {
-      results = searchIndex().filter((it) => (!kw || it.text.toLowerCase().includes(kw.toLowerCase())) && f.every((x) => it.facets.includes(x)));
-    }
-    const hl = (s) => { const e = esc(s); if (!kw) return e; const k = esc(kw).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); return e.replace(new RegExp(k, "gi"), (m) => `<mark>${m}</mark>`); };
+    const filtering = !!(kw || cat || bad || f.length);
+    const linkTo = (o) => { const v = { q: kw, c: cat, b: bad, ...o }; const p = new URLSearchParams(); Object.entries(v).forEach(([k, val]) => val && p.set(k, val)); p.set("keep", "1"); return "#/search?" + p.toString(); };
+    const hl = (t) => { const e = esc(t); if (!kw) return e; const k = esc(kw).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); return e.replace(new RegExp(k, "gi"), (m) => `<mark>${m}</mark>`); };
     const snippet = (it) => { if (!kw) return it.sub; const i = it.text.toLowerCase().indexOf(kw.toLowerCase()); if (i < 0 || it.sub.includes(kw)) return it.sub; return "…" + it.text.slice(Math.max(0, i - 24), i + 40) + "…"; };
     const chipHref = (val) => { const set = new Set(f); set.has(val) ? set.delete(val) : set.add(val); const p = new URLSearchParams(); if (kw) p.set("q", kw); set.forEach((x) => p.append("f", x)); p.set("keep", "1"); return "#/search?" + p.toString(); };
 
-    return {
-      title: "探す",
-      html: `
-      <div class="searchbox"><input id="kw" type="search" placeholder="スポット・料理・用語・フレーズを検索" value="${esc(kw)}" enterkeyhint="search"></div>
-      <div class="facet"><h4>目的から探す</h4><div class="purpose">${FACETS["目的"].map((v) => `<a class="pp ${f.includes(v) ? "on" : ""}" href="${chipHref(v)}"><span class="pp-ic"><i class="ph ph-${PURPOSE_IC[v] || "sparkle"}"></i></span>${esc(v)}</a>`).join("")}</div></div>
-      ${Object.entries(FACETS).filter(([n]) => n !== "目的").map(([name, vals], gi) => `<div class="facet"><h4>${name}から探す</h4><div class="chips">${vals.map((v, i) => `<a class="chip dot d${(gi * 3 + i) % 6} ${f.includes(v) ? "on" : ""}" href="${chipHref(v)}">${esc(v)}</a>`).join("")}</div></div>`).join("")}
-      ${kw || f.length ? `<div class="section-title">${results.length} 件 <small>${f.length ? `<a href="#/search?q=${encodeURIComponent(kw)}">絞り込みを解除</a>` : ""}</small></div>
-        <div class="card" style="padding:0 14px">${results.length ? results.map((it) => `<a class="result" href="${it.href}"><span class="pill type ${it.cls}">${it.type}</span><div><h4>${hl(it.title)}</h4><p>${hl(snippet(it))}</p></div></a>`).join("") : `<div class="empty">見つかりませんでした。<br><span class="tiny">試作版のため、まだ外灘と豫園しか解説がありません</span></div>`}</div>`
-      : `<div class="section-title">すべてのページ</div>
+    const top = `
+      <div class="searchbox"><input id="kw" type="search" placeholder="スポット・料理・お土産・用語を検索" value="${esc(kw)}" enterkeyhint="search"></div>
+      <div class="disc-top"><button class="dice" data-act="random"><i class="ph ph-shuffle"></i> ランダムで1つ発見</button><a class="favlink" href="#/favs"><i class="ph ph-star"></i> 気になる ${state.favs.filter((k) => k.startsWith("find:")).length}</a></div>
+      <div class="cats">${Object.entries(FIND_CATS).map(([k, c]) => `<a class="pp ${cat === k ? "on" : ""}" href="${linkTo({ c: cat === k ? "" : k })}"><span class="pp-ic c-${c.color || "navy"}"><i class="ph ph-${c.icon}"></i></span>${c.label}</a>`).join("")}</div>
+      <div class="chips badge-chips">${Object.entries(FIND_BADGES).map(([k, b]) => `<a class="chip ${bad === k ? "on" : ""}" href="${linkTo({ b: bad === k ? "" : k })}"><i class="ph ph-${b.icon}"></i> ${b.label}</a>`).join("")}</div>`;
+
+    let body = "";
+    if (filtering) {
+      let fr = FINDS.filter((x) => (!cat || x.cat === cat) && (!bad || badgesOf(x).includes(bad)) && (!kw || findText(x).toLowerCase().includes(kw.toLowerCase())));
+      if (f.length) fr = [];
+      if (bad === "near") fr.sort((x, y) => distKm(x) - distKm(y));
+      const others = (kw || f.length) && !cat && !bad ? searchIndex().filter((it) => (!kw || it.text.toLowerCase().includes(kw.toLowerCase())) && f.every((x) => it.facets.includes(x))) : [];
+      const label = [cat && FIND_CATS[cat].label, bad && FIND_BADGES[bad].label, kw && `「${kw}」`, ...f].filter(Boolean).join(" × ");
+      body = `<div class="section-title">${esc(label)}：${fr.length + others.length} 件 <small><a href="#/search">条件をクリア</a></small></div>
+        ${fr.length ? `<div class="card list-card">${fr.map(findRow).join("")}</div>` : ""}
+        ${others.length ? `<div class="label-s">解説・用語・ツール</div><div class="card" style="padding:0 14px">${others.map((it) => `<a class="result" href="${it.href}"><span class="pill type ${it.cls}">${it.type}</span><div><h4>${hl(it.title)}</h4><p>${hl(snippet(it))}</p></div></a>`).join("")}</div>` : ""}
+        ${!fr.length && !others.length ? `<div class="empty">見つかりませんでした。<br><span class="tiny">別の言葉や条件で試してください</span></div>` : ""}`;
+    } else {
+      const sec = (title, items, o) => (items.length ? `<div class="section-title">${title} <small><a href="${linkTo(o)}">すべて ${items.length} ›</a></small></div><div class="hscroll">${items.map(findCard).join("")}</div>` : "");
+      const byB = (b) => FINDS.filter((x) => badgesOf(x).includes(b));
+      const byC = (c) => FINDS.filter((x) => x.cat === c);
+      body = `
+        ${sec("今ホット", byB("hot"), { b: "hot" })}
+        ${sec("穴場", byB("hidden"), { b: "hidden" })}
+        ${sec("ホテルの近く", byB("near").sort((x, y) => distKm(x) - distKm(y)), { b: "near" })}
+        ${sec("12月だけ", byB("dec"), { b: "dec" })}
+        ${sec("日本とつながる", byB("japan"), { b: "japan" })}
+        ${sec("食べる", byC("food"), { c: "food" })}
+        ${sec("カフェ・お茶", byC("cafe"), { c: "cafe" })}
+        ${sec("お土産", byC("souvenir"), { c: "souvenir" })}
+        ${sec("夜", byC("night"), { c: "night" })}
+        ${sec("街歩き", byC("walk"), { c: "walk" })}
+        ${sec("見る", byC("sight"), { c: "sight" })}
+        <div class="section-title">詳しい解説と読み物</div>
         <div class="card related">
-          ${Object.entries(SPOTS).map(([id, s]) => `<a href="#/spot/${id}">スポット：${esc(s.name)}</a>`).join("")}
-          ${Object.entries(ARTICLES).map(([id, a]) => `<a href="#/article/${id}">読み物：${esc(a.title)}</a>`).join("")}
+          ${Object.entries(SPOTS).map(([id, sp]) => `<a href="#/spot/${id}">解説：${esc(sp.name)}</a>`).join("")}
+          ${Object.entries(ARTICLES).map(([id, ar]) => `<a href="#/article/${id}">読み物：${esc(ar.title)}</a>`).join("")}
         </div>
         <div class="section-title">用語集</div>
-        <div class="chips">${Object.entries(TERMS).map(([id, t]) => `<a class="chip" href="#/term/${id}">${esc(t.name)}</a>`).join("")}</div>`}`,
+        <div class="chips">${Object.entries(TERMS).map(([id, t]) => `<a class="chip" href="#/term/${id}">${esc(t.name)}</a>`).join("")}</div>
+        <details class="more-facets"><summary>テーマ・エリア・時間帯で解説を探す</summary>
+          ${Object.entries(FACETS).map(([name, vals], gi) => `<div class="facet"><h4>${name}</h4><div class="chips">${vals.map((v, i) => `<a class="chip dot d${(gi * 3 + i) % 6} ${f.includes(v) ? "on" : ""}" href="${chipHref(v)}">${esc(v)}</a>`).join("")}</div></div>`).join("")}
+        </details>`;
+    }
+
+    return {
+      title: "発見",
+      html: top + body,
       after() {
         const inp = $("#kw");
         let timer;
         inp.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => {
-          const p = new URLSearchParams(); if (inp.value) p.set("q", inp.value); f.forEach((x) => p.append("f", x)); p.set("keep", "1");
+          const p = new URLSearchParams(); if (inp.value) p.set("q", inp.value); if (cat) p.set("c", cat); if (bad) p.set("b", bad); f.forEach((x) => p.append("f", x)); p.set("keep", "1");
           history.replaceState(null, "", "#/search?" + p.toString()); render(); const n = $("#kw"); n.focus(); n.setSelectionRange(n.value.length, n.value.length);
         }, 250); });
       },
@@ -551,6 +672,14 @@
         <text x="${x + 11}" y="${y + 4}">${esc(p.name)}</text></g>`;
     }).join("");
 
+    // 発見の場所：中心部の中は小さな点、外は一覧に
+    const inB = (f) => hasPos(f) && f.lat > B.minLat && f.lat < B.maxLat && f.lng > B.minLng && f.lng < B.maxLng;
+    const fFocus = focus && focus.startsWith("f:") ? focus.slice(2) : null;
+    const dots = FINDS.filter((f) => inB(f) && !f.link).map((f) => {
+      const [x, y] = px(f.lat, f.lng); const col = CAT_COLOR[FIND_CATS[f.cat].color || "navy"]; const on = fFocus === f.id;
+      return `<g class="map-pin" data-act="pin" data-id="f:${f.id}">${on ? `<circle class="halo" cx="${x}" cy="${y}" r="18"/>` : ""}<circle cx="${x}" cy="${y}" r="${on ? 7 : 5}" fill="${col}" stroke="#fff" stroke-width="2"/>${on ? `<text x="${x + 10}" y="${y + 4}">${esc(f.name)}</text>` : ""}</g>`;
+    }).join("");
+    const outs = FINDS.filter((f) => hasPos(f) && !inB(f)).sort((a, b) => distKm(a) - distKm(b));
     const qs = (o) => { const p = new URLSearchParams(q); Object.entries(o).forEach(([k, v]) => (v == null ? p.delete(k) : p.set(k, v))); p.set("keep", "1"); return "#/map?" + p.toString(); };
     return {
       title: "地図",
@@ -569,22 +698,25 @@
           <text x="${px(31.2200, 121.5120)[0]}" y="${px(31.2200, 121.5120)[1]}" font-size="22" fill="#c5cbd8" font-weight="800" font-family="Zen Kaku Gothic New, sans-serif">浦東</text>
           ${oldLayer}
           ${route}
+          ${dots}
           ${pins}
         </svg>
       </div>
+      <div class="map-legend">${Object.values(FIND_CATS).map((c) => `<span class="lg"><i style="background:${CAT_COLOR[c.color || "navy"]}"></i>${c.label}</span>`).join("")}<span class="lg"><i class="big" style="background:#b5332a"></i>解説のある場所</span></div>
       <div id="mapcard"></div>
-      <div class="tiny" style="margin-top:8px">※ 試作の概略図です。位置はおおよそ。昔の地図の範囲も目安です。</div>
-      <div class="section-title">中心部の外</div>
-      <div class="offmap">
-        <a href="#/spot/disney" style="color:inherit"><div><span><i class="ph ph-castle-turret"></i>上海ディズニーランド</span><span class="muted">ホテルから南東へ約30km ›</span></div></a>
-        <a href="#/spot/acrobat" style="color:inherit"><div><span><i class="ph ph-star"></i>上海馬戯城（雑技）</span><span class="muted">ホテルから北へ約6km ›</span></div></a>
-        <div><span><i class="ph ph-airplane"></i>浦東空港</span><span class="muted">ホテルから東へ約40km</span></div>
-        <div><span><i class="ph ph-train"></i>龍陽路駅（リニア）</span><span class="muted">陸家嘴から南東へ約8km</span></div>
-      </div>`,
-      after() { if (focus) showPin(PLACES.find((p) => p.spot === focus || p.id === focus)?.id); },
+      <div class="tiny" style="margin-top:8px">※ 概略図です。位置はおおよそ。点をタップすると名前が出ます。</div>
+      <div class="section-title">中心部の外 <small>近い順</small></div>
+      <div class="card list-card">${outs.map(findRow).join("")}</div>
+      <div class="offmap"><div><span><i class="ph ph-airplane"></i>浦東空港</span><span class="muted">ホテルから東へ約40km</span></div></div>`,
+      after() { if (focus) showPin(focus.startsWith("f:") ? focus : PLACES.find((p) => p.spot === focus || p.id === focus)?.id); },
     };
   };
+  const CAT_COLOR = { red: "#b5332a", teal: "#2f6b8f", jade: "#2f6b5e", gold: "#9c7430", rose: "#b4507a", navy: "#1f3350" };
   function showPin(id) {
+    if (id && id.startsWith("f:")) {
+      const f = FINDS.find((x) => x.id === id.slice(2)); const box = $("#mapcard"); if (!f || !box) return;
+      box.innerHTML = `<div class="card list-card map-card">${findRow(f)}</div>`; return;
+    }
     const p = PLACES.find((x) => x.id === id); const box = $("#mapcard"); if (!p || !box) return;
     const s = p.spot && SPOTS[p.spot];
     box.innerHTML = `<div class="card map-card"><b>${esc(p.kind === "hotel" ? TRIP.hotel.name : p.name)}</b>
@@ -606,20 +738,23 @@
         ${t("#/tools/rate", "currency-cny", "為替の計算", `1元 ≒ ${state.rate}円`)}
         ${t("#/tools/emergency", "siren", "緊急連絡先", "警察・救急・総領事館")}
       </div>
-      <div class="section-title">準備と記録</div>
+      <div class="section-title">準備と楽しみ</div>
       <div class="toolgrid">
         ${t("#/tools/check", "check-square", "準備・持ち物", "出発前のやることと持ち物")}
-        ${t("#/tools/missions", "magnifying-glass", "調査ミッション", "現地で探すお題")}
         ${t("#/tools/quiz", "question", "上海クイズ", "4人で遊べる")}
-        ${t("#/tools/notes", "note-pencil", "調査ノート", "日ごとのメモと気づき")}
-        ${t("#/favs", "star", "お気に入り", `${state.favs.length} 件`)}
+        ${t("#/favs", "star", "気になるリスト", `${state.favs.length} 件`)}
         ${t("#/tools/settings", "gear", "設定", "文字の大きさ・日時を試す")}
       </div>`,
     };
   };
   PAGES.favs = () => ({
-    title: "お気に入り",
-    html: state.favs.length ? `<div class="card related">${state.favs.map((k) => { const [t, id] = k.split(":"); const title = t === "spot" ? SPOTS[id]?.name : t === "article" ? ARTICLES[id]?.title : TERMS[id]?.name; return `<a href="${hrefOfKey(k)}">${esc(title || k)}</a>`; }).join("")}</div>` : `<div class="empty">ページ右上の星マークを押すと、ここに集まります</div>`,
+    title: "気になるリスト",
+    html: state.favs.length ? (() => {
+      const finds = state.favs.filter((k) => k.startsWith("find:")).map((k) => FINDS.find((f) => f.id === k.slice(5))).filter(Boolean);
+      const others = state.favs.filter((k) => !k.startsWith("find:"));
+      return `${finds.length ? `<div class="label-s">気になる発見</div><div class="card list-card">${finds.map(findRow).join("")}</div>` : ""}
+      ${others.length ? `<div class="label-s">解説・読み物</div><div class="card related">${others.map((k) => { const [t, id] = k.split(":"); const title = t === "spot" ? SPOTS[id]?.name : t === "article" ? ARTICLES[id]?.title : TERMS[id]?.name; return `<a href="${hrefOfKey(k)}">${esc(title || k)}</a>`; }).join("")}</div>` : ""}`;
+    })() : `<div class="empty">気になる場所のページで、右上の星マークを押すと、ここに集まります</div>`,
   });
 
   const TOOLS = {
@@ -663,10 +798,6 @@
       title: "準備・持ち物",
       html: Object.entries(CHECKLISTS).map(([k, l]) => { const d = l.items.filter((_, i) => state.checks[`${k}:${i}`]).length; return `<div class="section-title">${l.title} <small>${d}/${l.items.length}</small></div><div class="card">${l.items.map((it, i) => `<div class="mission ${state.checks[`${k}:${i}`] ? "on" : ""}" data-act="check" data-key="${k}:${i}"><span class="check"></span><span>${esc(it)}</span></div>`).join("")}</div>`; }).join(""),
     }),
-    missions: () => ({
-      title: "調査ミッション",
-      html: `<p class="muted">現地で探す小さなお題。見つけたらチェック。</p>` + Object.entries(SPOTS).map(([id, s]) => `<div class="section-title"><a href="#/spot/${id}" style="color:inherit">${esc(s.name)}</a></div><div class="card">${s.missions.map((m, i) => `<div class="mission ${state.checks[`mission:${id}:${i}`] ? "on" : ""}" data-act="check" data-key="mission:${id}:${i}"><span class="check"></span><span>${esc(m)}</span></div>`).join("")}</div>`).join(""),
-    }),
     quiz: () => {
       const all = Object.entries(SPOTS).flatMap(([id, s]) => s.quiz.map((q, i) => ({ key: `${id}:${i}`, q, spot: s.name })));
       const answered = all.filter((x) => state.quiz[x.key] != null); const right = answered.filter((x) => state.quiz[x.key] === x.q.correct).length;
@@ -674,14 +805,6 @@
         title: "上海クイズ",
         html: `<div class="card" style="text-align:center"><div class="tiny">正解数</div><div class="quiz-score" style="font-size:2.2rem;color:var(--red)">${right} / ${all.length}</div><button class="toggle-link" data-act="quiz-reset">もう一度やる</button></div>
         ${all.map((x) => `<div class="card"><span class="pill">${esc(x.spot)}</span>${quizHtml(x.key, x.q)}</div>`).join("")}`,
-      };
-    },
-    notes: () => {
-      const fields = [["theme", "上海はなぜ大都市になったのか（自分たちの答え）"], ...PLAN.map((d, i) => [`day${i}`, `${d.label}（${d.dow}）${d.title}のメモ`]), ["after", "帰国後に調べたいこと"]];
-      return {
-        title: "調査ノート",
-        html: `<p class="muted">このスマホに自動で保存されます。</p>${fields.map(([k, l]) => `<div class="note-label">${esc(l)}</div><textarea data-note="${k}" placeholder="気づいたこと、写真の場所、疑問など">${esc(state.notes[k] || "")}</textarea>`).join("")}<div class="saved" id="saved"></div>`,
-        after() { document.querySelectorAll("textarea[data-note]").forEach((ta) => ta.addEventListener("input", () => { state.notes[ta.dataset.note] = ta.value; save("notes"); $("#saved").textContent = "保存しました"; })); },
       };
     },
     settings: () => ({
@@ -725,6 +848,7 @@
     else if (a === "show-taxi" || a === "show-phrase") { showBig(el.dataset); }
     else if (a === "rate-q") { const v = +el.dataset.v; $("#cny").value = v; $("#jpy").value = Math.round(v * state.rate); }
     else if (a === "pin") { showPin(el.dataset.id); }
+    else if (a === "random") { randomFind(); }
     else if (a === "large") { state.large = el.dataset.v === "1"; save("large"); applyLarge(); keepRender(); }
     else if (a === "nowset") { state.nowOverride = el.dataset.v; save("nowOverride"); toast(el.dataset.v ? "日時を設定しました" : "今の日時に戻しました"); keepRender(); }
     else if (a === "reset-sel") { if (confirm("選んだ予定をすべて消しますか？")) { state.sel = {}; save("sel"); toast("リセットしました"); } }

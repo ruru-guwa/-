@@ -493,3 +493,75 @@ textarea { width: 100%; min-height: 110px; font: inherit; font-size: .95rem; pad
 .read-card .thumb.rose { background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 16px), #9b3f66; }
 .offmap a > div { transition: background .15s; }
 .offmap a:active > div { background: #f3f6fb; }
+
+/* =========================================================
+   発見（スポット・食べ物・お土産などのカード）
+   ========================================================= */
+:root { --c-red: #b5332a; --c-teal: #2f6b8f; --c-jade: #2f6b5e; --c-gold: #8f6a24; --c-rose: #b4507a; --c-navy: #1f3350; }
+.c-red { --cc: var(--c-red); --cs: #ffe6e3; } .c-teal { --cc: var(--c-teal); --cs: #e3f0f8; } .c-jade { --cc: var(--c-jade); --cs: #dcf5ea; }
+.c-gold { --cc: var(--c-gold); --cs: #fff0d9; } .c-rose { --cc: var(--c-rose); --cs: #ffe6f0; } .c-navy { --cc: var(--c-navy); --cs: #eaf1ff; }
+.spot-hero.teal { background: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 26px), #2f6b8f; }
+.spot-hero .big.latin { font-family: var(--num); font-size: 3.2rem; letter-spacing: 0; }
+
+/* バッジ */
+.fc-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.fb { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; font-size: .7rem; font-weight: 700; white-space: nowrap; }
+.fb .ph { font-size: .85rem; }
+.fb-hot { background: #ffe6e3; color: #b5332a; }
+.fb-hidden { background: #eaf1ff; color: #1f3350; }
+.fb-classic { background: #fff0d9; color: #8f6a24; }
+.fb-dec { background: #e3f0f8; color: #2f6b8f; }
+.fb-japan { background: #ffe6f0; color: #b4507a; }
+.fb-near { background: #dcf5ea; color: #2f6b5e; }
+
+/* 横に流れるカード */
+.find-card { flex: 0 0 72%; max-width: 250px; scroll-snap-align: start; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; color: var(--ink); display: flex; flex-direction: column; }
+.fc-art { position: relative; height: 100px; display: grid; place-items: center; color: #f1d58f; background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 16px), var(--cc); }
+.fc-art b { font-size: 2.1rem; font-weight: 700; letter-spacing: .06em; }
+.fc-art.latin b { font-family: var(--num); font-size: 1.8rem; letter-spacing: 0; }
+.fc-cat { position: absolute; top: 8px; left: 10px; display: inline-flex; align-items: center; gap: 4px; font-size: .68rem; font-weight: 700; color: rgba(255,255,255,.9); }
+.fc-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+.fc-body h4 { font-size: .95rem; line-height: 1.4; }
+.fc-body p { font-size: .78rem; color: var(--sub); margin: 0; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* 一覧の行 */
+.list-card { padding: 0 14px; }
+.find-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); color: var(--ink); }
+.find-row:last-child { border-bottom: 0; }
+.fr-ic { flex: 0 0 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--cs); color: var(--cc); font-size: 20px; margin-top: 2px; }
+.fr-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fr-body h4 { font-size: .98rem; }
+.fr-body p { font-size: .82rem; color: var(--sub); margin: 0; line-height: 1.55; }
+.fr-body small { font-size: .74rem; color: var(--jade); font-weight: 600; }
+
+/* 今日の発見 */
+.pick { display: flex; gap: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; color: var(--ink); }
+.pick-art { flex: 0 0 104px; display: grid; place-items: center; color: #f1d58f; background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 16px), var(--cc); }
+.pick-art b { font-size: 1.7rem; font-weight: 700; writing-mode: horizontal-tb; text-align: center; padding: 0 6px; line-height: 1.2; }
+.pick-art.latin b { font-family: var(--num); font-size: 1.3rem; }
+.pick-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pick-body h3 { font-size: 1.05rem; }
+.pick-body p { font-size: .82rem; color: var(--sub); margin: 0; line-height: 1.6; }
+
+/* ランダムボタン・発見の上部 */
+.dice { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; padding: 12px; border: 1.5px dashed #c9d6f0; border-radius: var(--radius); background: #f5f8ff; color: var(--navy); font-weight: 700; cursor: pointer; }
+.dice .ph { font-size: 20px; }
+.disc-top { display: flex; gap: 8px; align-items: stretch; }
+.disc-top .dice { margin-top: 0; flex: 1; }
+.favlink { display: flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: var(--radius); background: #fff0d9; color: var(--gold); font-weight: 700; font-size: .85rem; white-space: nowrap; }
+.cats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-top: 16px; }
+.cats .pp { font-size: .7rem; }
+.cats .pp-ic { width: 48px; height: 48px; font-size: 22px; background: var(--cs); color: var(--cc); border: 0; }
+.cats .pp.on .pp-ic { background: var(--cc); color: #fff; }
+.badge-chips { margin-top: 14px; }
+.badge-chips .chip { display: inline-flex; align-items: center; gap: 4px; }
+.more-facets { margin-top: 22px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.more-facets summary { cursor: pointer; font-weight: 700; font-size: .9rem; color: var(--sub); }
+
+/* 地図の凡例 */
+.map-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 10px; font-size: .75rem; color: var(--sub); }
+.map-legend .lg { display: inline-flex; align-items: center; gap: 5px; }
+.map-legend .lg i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.map-legend .lg i.big { width: 13px; height: 13px; border: 2px solid #fff; box-shadow: 0 0 0 1px #ddd; }
+.map-card.list-card { padding: 0 14px; }
+.offmap { margin-top: 8px; }
