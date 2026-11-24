@@ -157,15 +157,22 @@
       const days = Math.ceil((new Date(TRIP.start) - n) / 86400000);
       const prepLeft = CHECKLISTS.prep.items.filter((_, i) => !state.checks["prep:" + i]).length;
       hero = `<div class="count"><span>出発まで</span><b>${days}</b><span>日</span></div>`;
+      const prepTotal = CHECKLISTS.prep.items.length;
+      const slotsAll = PLAN.flatMap((d) => d.slots.filter((s) => s.type !== "fixed"));
+      const slotsDone = slotsAll.filter((s) => (s.type === "choice" && chosenOf(s)) || (s.type === "split" && Object.values(splitOf(s)).filter(Boolean).length)).length;
+      const nextPrep = CHECKLISTS.prep.items.find((_, i) => !state.checks["prep:" + i]);
+      const tile = (href, label, val, total, unit, color) => `<a class="stat" href="${href}"><span class="stat-label">${label}</span>
+        <span class="stat-num"><b>${val}</b><small>/${total}${unit}</small></span>
+        <span class="bar"><i style="width:${Math.round((val / total) * 100)}%;background:var(${color})"></i></span></a>`;
       main = `
-        <div class="section-title">出発前の準備 <small><a href="#/tools/check">すべて見る ›</a></small></div>
-        <a class="card" href="#/tools/check" style="display:block;color:inherit">
-          <b style="font-size:1.1rem">${prepLeft === 0 ? "準備はすべて完了！" : `あと ${prepLeft} 件`}</b>
-          <div class="muted">${prepLeft ? esc(CHECKLISTS.prep.items.find((_, i) => !state.checks["prep:" + i])) + " など" : "旅行を楽しみましょう"}</div>
-        </a>
-        <div class="section-title">「絶対に行きたい」の予定状況 <small><a href="#/plan">予定を選ぶ ›</a></small></div>
-        <div class="card"><div class="must-row">${MUSTS.map((m) => `<span class="must ${musts.has(m.id) ? "ok" : ""}">${m.label}</span>`).join("")}</div>
-        <div class="tiny" style="margin-top:8px">${musts.size === MUSTS.length ? "すべて予定に入っています" : `まだ予定に入っていないものが ${MUSTS.length - musts.size} つあります`}</div></div>`;
+        <div class="label-s">準備の進み具合</div>
+        <div class="stats">
+          ${tile("#/tools/check", "出発前の準備", prepTotal - prepLeft, prepTotal, "件", "--jade")}
+          ${tile("#/plan", "予定を選んだ枠", slotsDone, slotsAll.length, "枠", "--gold")}
+          ${tile("#/plan", "絶対行きたい", musts.size, MUSTS.length, "", "--red")}
+        </div>
+        ${nextPrep ? `<a class="nextup" href="#/tools/check"><span class="nu-ic"><i class="ph ph-check-square"></i></span><span class="nu-body"><small>つぎにやること</small><b>${esc(nextPrep)}</b></span><i class="ph ph-caret-right"></i></a>` : ""}
+        <div class="must-row" style="margin-top:12px">${MUSTS.map((m) => `<span class="must ${musts.has(m.id) ? "ok" : ""}">${m.label}</span>`).join("")}</div>`;
     } else if (ph === "during") {
       const di = PLAN.findIndex((d) => d.date === sh.date);
       const day = PLAN[di];
@@ -256,8 +263,9 @@
     const musts = coveredMusts();
     const choose = state.planMode === "choose";
 
+    const node = (s) => { const k = kindOf(s, chosenOf(s)); return `<span class="node k-${k.id}"><i class="ph ph-${k.icon}"></i></span>`; };
     const slotHtml = (s) => {
-      const time = `<div class="time">${s.time}<small>〜${s.end}</small></div>`;
+      const time = `<div class="time">${s.time}<small>〜${s.end}</small></div>${node(s)}`;
       if (s.type === "fixed") {
         return `<div class="slot fixed">${time}<div class="card"><div class="kicker">決定</div><h3>${esc(s.title)}</h3>${s.note ? `<div class="muted">${esc(s.note)}</div>` : ""}</div></div>`;
       }
@@ -300,18 +308,60 @@
         <div class="persons">${TRIP.members.filter((p) => !s.fixedFor?.[p.id]).map((p) => `<button class="person ${m[p.id] === x.id ? "on" : ""}" data-act="assign" data-slot="${s.id}" data-opt="${x.id}" data-person="${p.id}">${avatar(p.id)}${esc(p.name)}</button>`).join("")}</div>
       </div>`;
 
+    // アジェンダ表示：種類ごとに色分けしたブロックを並べる
+    const agendaHtml = (s) => {
+      const o = chosenOf(s); const k = kindOf(s, o);
+      const range = `${s.time} – ${s.end}`;
+      if (s.type === "split") {
+        const m = splitOf(s);
+        const lines = TRIP.members.map((p) => `<div class="ag-person">${avatar(p.id)}<span>${esc(s.fixedFor?.[p.id] || (m[p.id] ? s.options.find((x) => x.id === m[p.id])?.title : "未定"))}</span></div>`).join("");
+        return `<div class="ag k-${k.id}"><i class="ph ph-users-three ag-ic"></i><div class="ag-body"><b>${esc(s.title)}</b><span class="ag-time">${range}</span>${lines}</div></div>`;
+      }
+      const title = s.type === "fixed" ? s.title : o?.title;
+      if (!title) return `<a class="ag ag-open" href="#" data-act="mode" data-mode="choose"><i class="ph ph-circle-dashed ag-ic"></i><div class="ag-body"><b>${esc(s.title)}：未選択</b><span class="ag-time">${range} ・ 候補 ${s.options.length} 件から選ぶ</span></div></a>`;
+      const href = o?.spot ? `#/spot/${o.spot}` : null;
+      const inner = `<i class="ph ph-${k.icon} ag-ic"></i><div class="ag-body"><b>${esc(title)}</b><span class="ag-time">${range}${o?.move ? ` ・ ${esc(o.move)}` : ""}</span></div>${href ? `<i class="ph ph-caret-right ag-go"></i>` : ""}`;
+      return href ? `<a class="ag k-${k.id}" href="${href}">${inner}</a>` : `<div class="ag k-${k.id}">${inner}</div>`;
+    };
+    const chosenCount = day.slots.filter((s) => s.type === "fixed" || (s.type === "choice" && chosenOf(s)) || (s.type === "split" && Object.values(splitOf(s)).filter(Boolean).length)).length;
+
     return {
       title: "予定",
       html: `
-      <div class="daytabs">${PLAN.map((d, i) => `<a class="daytab ${i === di ? "active" : ""}" href="#/plan/${i}?keep=1"><b>${d.label}</b><small>${d.dow}・${i + 1}日目</small></a>`).join("")}</div>
-      <div class="daytitle"><div class="tiny">${di + 1}日目 ・ ${day.label}（${day.dow}）</div><h2>${esc(day.title)}</h2></div>
-      <div class="seg"><button class="${choose ? "on" : ""}" data-act="mode" data-mode="choose">えらぶ</button><button class="${!choose ? "on" : ""}" data-act="mode" data-mode="view">タイムライン</button></div>
-      <div class="card" style="padding:10px 14px"><div class="tiny" style="margin-bottom:6px">「絶対に行きたい」の予定状況（4日間全体）</div><div class="must-row">${MUSTS.map((m) => `<span class="must ${musts.has(m.id) ? "ok" : ""}">${m.label}</span>`).join("")}</div></div>
-      <div class="tl" style="margin-top:16px">${day.slots.map(slotHtml).join("")}</div>
-      <div class="card muted" style="font-size:.85rem">選んだ内容はこのスマホにだけ保存されます。4人で決まったら、確定版としてサイトに反映します。</div>
-      <div style="text-align:center;margin-top:8px"><a class="btn" href="#/map?day=${di}">この日のルートを地図で見る</a></div>`,
+      <div class="tabband">${PLAN.map((d, i) => `<a class="${i === di ? "active" : ""}" href="#/plan/${i}?keep=1"><span class="tb-date">${d.label}</span><span class="tb-dow">${d.dow}</span></a>`).join("")}</div>
+      <div class="daytitle">
+        <div><div class="eyebrow-s">DAY ${di + 1} ・ ${day.label}（${day.dow}）</div><h2>${esc(day.title)}</h2></div>
+        <div class="stat-mini"><b>${chosenCount}</b><span>/${day.slots.length} 決定</span></div>
+      </div>
+      <div class="seg"><button class="${choose ? "on" : ""}" data-act="mode" data-mode="choose"><i class="ph ph-list-checks"></i> えらぶ</button><button class="${!choose ? "on" : ""}" data-act="mode" data-mode="view"><i class="ph ph-calendar-check"></i> アジェンダ</button></div>
+      ${choose ? `<div class="tl">${day.slots.map(slotHtml).join("")}</div>` : `<div class="agenda">${day.slots.map(agendaHtml).join("")}</div>`}
+      <a class="cta" href="#/map?day=${di}"><i class="ph ph-map-trifold"></i> この日のルートを地図で見る</a>
+      <div class="label-s" style="margin-top:22px">絶対に行きたい（4日間全体）</div>
+      <div class="must-row">${MUSTS.map((m) => `<span class="must ${musts.has(m.id) ? "ok" : ""}">${m.label}</span>`).join("")}</div>
+      <p class="tiny" style="margin-top:14px">選んだ内容はこのスマホにだけ保存されます。4人で決まったら、確定版としてサイトに反映します。</p>`,
     };
   };
+
+  /* 予定の種類（色とアイコン）。データに kind があればそれを使い、なければ言葉から判断する */
+  const KINDS = {
+    move: { id: "move", icon: "airplane-tilt", label: "移動" },
+    meal: { id: "meal", icon: "fork-knife", label: "食事" },
+    night: { id: "night", icon: "moon-stars", label: "夜" },
+    rest: { id: "rest", icon: "bed", label: "休む" },
+    park: { id: "park", icon: "castle-turret", label: "ディズニー" },
+    sight: { id: "sight", icon: "binoculars", label: "見る・歩く" },
+  };
+  function kindOf(s, o) {
+    if (s.kind) return KINDS[s.kind];
+    const t = s.title + (o ? " " + o.title + " " + (o.tags || []).join(" ") : "");
+    if (/ディズニーランド/.test(s.title)) return KINDS.park;
+    if (/→|入国|移動/.test(s.title)) return { ...KINDS.move, icon: /リニア|地下鉄/.test(t) ? "train-simple" : /タクシー/.test(t) ? "taxi" : "airplane-tilt" };
+    if (/夕食|昼食|食べる|朝ごはん|朝食|夜ごはん/.test(t)) return KINDS.meal;
+    if (/チェックイン|ホテル|休/.test(s.title)) return KINDS.rest;
+    if (/夜/.test(s.title)) return KINDS.night;
+    if (/お茶/.test(s.title)) return { ...KINDS.meal, icon: "coffee" };
+    return KINDS.sight;
+  }
 
   /* ---------------- スポット ---------------- */
   PAGES.spot = (args) => {
@@ -360,7 +410,8 @@
 
       ${opts.length ? `<div class="section-title">この場所が入る予定の候補</div><div class="card related">${opts.map((o) => `<a href="#/plan/${o.dayIndex}">${esc(o.day.label)} ${esc(o.slot.title)}：${esc(o.title)}</a>`).join("")}</div>` : ""}
       <div class="section-title">関係する読み物</div>
-      <div class="card related"><a href="#/article/why">${esc(ARTICLES.why.title)}</a>${Object.entries(TERMS).filter(([tid]) => s.sections.some((x) => x.html.includes(`term:${tid}|`))).map(([tid, t]) => `<a href="#/term/${tid}">用語：${esc(t.name)}</a>`).join("")}</div>`,
+      <div class="card related"><a href="#/article/why">${esc(ARTICLES.why.title)}</a>${Object.entries(TERMS).filter(([tid]) => s.sections.some((x) => x.html.includes(`term:${tid}|`))).map(([tid, t]) => `<a href="#/term/${tid}">用語：${esc(t.name)}</a>`).join("")}</div>
+      <button class="fab" data-act="show-taxi" data-zh="${esc(s.zh)}" data-addr="${esc(TAXI.find((t) => t.id === id)?.addr || "")}" data-ja="${esc(s.name)}" aria-label="タクシーに見せる"><i class="ph ph-taxi"></i></button>`,
     };
   };
 
@@ -398,6 +449,7 @@
   };
 
   /* ---------------- 探す ---------------- */
+  const PURPOSE_IC = { "食べる": "bowl-food", "見る": "binoculars", "歩く": "person-simple-walk", "買う": "shopping-bag", "休む": "coffee", "夜を楽しむ": "moon-stars", "学ぶ": "book-open-text", "移動を楽しむ": "train-simple" };
   function searchIndex() {
     const items = [];
     Object.entries(SPOTS).forEach(([id, s]) => items.push({ type: "スポット", cls: "red", href: `#/spot/${id}`, title: s.name, sub: s.catch, text: [s.name, s.zh, s.en, s.read, s.catch, ...s.sections.map((x) => x.h + " " + strip(x.html)), ...s.missions].join(" "), facets: [...s.purposes, ...s.themes, ...s.times, s.area] }));
@@ -424,7 +476,8 @@
       title: "探す",
       html: `
       <div class="searchbox"><input id="kw" type="search" placeholder="スポット・料理・用語・フレーズを検索" value="${esc(kw)}" enterkeyhint="search"></div>
-      ${Object.entries(FACETS).map(([name, vals]) => `<div class="facet"><h4>${name}から探す</h4><div class="chips">${vals.map((v) => `<a class="chip ${f.includes(v) ? "on" : ""}" href="${chipHref(v)}">${esc(v)}</a>`).join("")}</div></div>`).join("")}
+      <div class="facet"><h4>目的から探す</h4><div class="purpose">${FACETS["目的"].map((v) => `<a class="pp ${f.includes(v) ? "on" : ""}" href="${chipHref(v)}"><span class="pp-ic"><i class="ph ph-${PURPOSE_IC[v] || "sparkle"}"></i></span>${esc(v)}</a>`).join("")}</div></div>
+      ${Object.entries(FACETS).filter(([n]) => n !== "目的").map(([name, vals], gi) => `<div class="facet"><h4>${name}から探す</h4><div class="chips">${vals.map((v, i) => `<a class="chip dot d${(gi * 3 + i) % 6} ${f.includes(v) ? "on" : ""}" href="${chipHref(v)}">${esc(v)}</a>`).join("")}</div></div>`).join("")}
       ${kw || f.length ? `<div class="section-title">${results.length} 件 <small>${f.length ? `<a href="#/search?q=${encodeURIComponent(kw)}">絞り込みを解除</a>` : ""}</small></div>
         <div class="card" style="padding:0 14px">${results.length ? results.map((it) => `<a class="result" href="${it.href}"><span class="pill type ${it.cls}">${it.type}</span><div><h4>${hl(it.title)}</h4><p>${hl(snippet(it))}</p></div></a>`).join("") : `<div class="empty">見つかりませんでした。<br><span class="tiny">試作版のため、まだ外灘と豫園しか解説がありません</span></div>`}</div>`
       : `<div class="section-title">すべてのページ</div>
@@ -653,7 +706,7 @@
     else if (a === "share") { const d = { title: TRIP.title, url: location.href }; if (navigator.share) navigator.share(d).catch(() => {}); else { navigator.clipboard?.writeText(location.href); toast("URLをコピーしました"); } }
     else if (a === "pick") { if (e.target.closest("a")) return; const { slot, opt } = el.dataset; state.sel[slot] = state.sel[slot] === opt ? undefined : opt; save("sel"); keepRender(); }
     else if (a === "assign") { const { slot, opt, person } = el.dataset; const m = { ...(state.sel[slot] || {}) }; m[person] = m[person] === opt ? undefined : opt; state.sel[slot] = m; save("sel"); keepRender(); }
-    else if (a === "mode") { state.planMode = el.dataset.mode; save("planMode"); keepRender(); }
+    else if (a === "mode") { e.preventDefault(); state.planMode = el.dataset.mode; save("planMode"); keepRender(); }
     else if (a === "check") { const k = el.dataset.key; state.checks[k] = !state.checks[k]; save("checks"); keepRender(); }
     else if (a === "quiz") { state.quiz[el.dataset.key] = +el.dataset.i; save("quiz"); keepRender(); }
     else if (a === "quiz-reset") { state.quiz = {}; save("quiz"); keepRender(); }
