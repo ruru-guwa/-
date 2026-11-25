@@ -1021,3 +1021,146 @@ main:has(> .dash) { padding-top: 10px; padding-bottom: 12px; }
 /* 病院 */
 .hosp-act { display: flex; gap: 8px; margin-top: 10px; }
 .emg b { white-space: nowrap; }
+
+/* =========================================================
+   案A テーマ（全画面・2026/11/25）
+   白基調＋クリムゾン。白いカードにうすい影、色つきのアイコンの丸、まるいチップ。
+   ここより上の色・形の指定を上書きする（見本：design/案A-ホーム.html）
+   ========================================================= */
+:root {
+  --radius: 12px; --radius-sm: 8px;
+  --line: #e6e8f0;
+  --navy: #2d3137;                       /* 濃い文字の面（もとの紺の代わり） */
+  --gold: #894d00; --gold-soft: #ffdcbf; /* 琥珀 */
+  --jade: #006d33; --jade-soft: #c8f5d5; /* 完了・できた */
+  --c-red: #ba0035; --c-teal: #00639b; --c-jade: #006d33; --c-gold: #894d00; --c-rose: #a8174f; --c-navy: #3f4759;
+  --k-move: #00639b; --k-meal: #006d33; --k-sight: #ba0035; --k-night: #894d00; --k-rest: #5f6368; --k-park: #a8174f;
+}
+.c-red { --cs: #ffdada; } .c-teal { --cs: #d1e4ff; } .c-jade { --cs: #c8f5d5; }
+.c-gold { --cs: #ffdcbf; } .c-rose { --cs: #ffd9e2; } .c-navy { --cs: #e5e8f0; }
+.av-ryu { background: #00639b; } .av-momo { background: #a8174f; } .av-misan { background: #006d33; } .av-chaa { background: #894d00; }
+
+/* カード・文字 */
+.card { border: 0; border-radius: var(--radius); background: #fff; box-shadow: var(--lift); }
+.list-card, .menu, .acc-list, .dz-list { padding-left: 14px; padding-right: 14px; }
+.label-s { color: var(--sub2); }
+.pill { border-radius: 6px; background: var(--surf-high); color: var(--ink); }
+.pill.red { background: var(--pri-soft); color: var(--pri-ink); }
+.pill.jade { background: var(--jade-soft); color: #00210b; }
+.pill.gray { background: var(--surf-high); color: var(--sub2); }
+.article h4 { color: var(--ink); }
+.article .look { background: var(--gold-soft); color: var(--peach-ink); }
+ul.timeline { border-left-color: var(--pri-soft); }
+ul.timeline li::before { background: var(--pri); }
+ul.timeline li b { color: var(--pri); }
+.toc a { background: var(--surf-high); }
+
+/* ページの見出し（色の面＋アイコンの丸） */
+.phead { margin: 0 0 10px; padding: 14px 14px 16px; border-radius: var(--radius); background: var(--cs); color: var(--ink); box-shadow: var(--lift); }
+.ph-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.ph-ic { flex: 0 0 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--cc); color: #fff; font-size: 22px; }
+.ph-kicker { padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, .8); color: var(--cc); font-size: .74rem; font-weight: 800; }
+.phead h2 { font-size: 1.35rem; line-height: 1.4; }
+.ph-sub { margin-top: 2px; font-size: .8rem; color: var(--sub2); }
+.ph-lead { margin: 8px 0 0; font-size: .92rem; line-height: 1.75; }
+.phead .count { display: flex; align-items: baseline; gap: 4px; margin-top: 10px; color: var(--pri); font-weight: 800; font-size: .9rem; }
+.phead .count b { font-family: var(--num); font-size: 2rem; line-height: 1; }
+.phead .dz-hours { color: var(--sub2); }
+
+/* 行動ボタン・チップ */
+.actions { margin-top: 0; }
+.action { border: 0; background: #fff; box-shadow: var(--lift); min-height: 40px; }
+.action .ph { color: var(--pri); }
+.chip { border: 1px solid var(--line); background: #fff; color: var(--ink); }
+.chip .ph { color: var(--pri); }
+.chip.on { background: var(--pri-soft); border-color: var(--pri-soft); color: var(--pri-ink); font-weight: 700; }
+.chip.on.dot::before { background: var(--pri); }
+.fit { border: 1px solid var(--line); background: #fff; color: var(--ink); }
+.fit .ph { color: var(--pri); }
+.fit.on { background: var(--pri-soft); border-color: var(--pri-soft); color: var(--pri-ink); }
+.fb { border-radius: 6px; }
+.fb-hot { background: var(--pri-soft); color: var(--pri-ink); }
+.fb-hidden { background: #d1e4ff; color: #001d36; }
+.fb-classic { background: var(--gold-soft); color: var(--peach-ink); }
+.fb-dec { background: #e5e8f0; color: #2d3137; }
+.fb-japan { background: #ffd9e2; color: #3e001d; }
+.fb-near, .fb-seen { background: var(--jade-soft); color: #00210b; }
+.must { border: 1px solid var(--line); background: #fff; }
+
+/* ボタン */
+.cta, .cta.add { background: var(--pri); border-radius: var(--radius); box-shadow: var(--lift); }
+.cta.alt { background: var(--surf-low); color: var(--ink); box-shadow: none; }
+.cta.alt > .ph:first-child { color: var(--pri); }
+.dice { border: 0; background: var(--pri-soft); color: var(--pri-ink); }
+.dice .ph { color: var(--pri); }
+.favlink { background: var(--peach); color: var(--peach-ink); }
+.btn { border-radius: 999px; }
+.fab { border-radius: 16px; background: var(--pri-soft); color: var(--pri-ink); box-shadow: 0 3px 8px rgba(24, 28, 34, .18); }
+.toggle-link { color: var(--pri); }
+
+/* こんな人に・ひと目でわかる情報 */
+.who { background: var(--surf-low); box-shadow: none; }
+.who h3 { color: var(--ink); }
+.who h3 .ph { color: var(--pri); }
+.gl { border: 0; border-radius: var(--radius); box-shadow: var(--lift); }
+.gl > .ph { color: var(--pri); background: var(--pri-soft); }
+.dots i.on { background: var(--pri); }
+
+/* 目次・進み具合・まえ/つぎ */
+.mr-n { background: var(--surf-high); color: var(--ink); }
+.bar { background: var(--surf-high); }
+.prog .bar i, .rr-prog .bar i, .sc-body .bar i { background: var(--pri); }
+.cont { background: var(--pri-soft); color: var(--pri-ink); box-shadow: var(--lift); }
+.cont > .ph:first-child { color: var(--pri); }
+.nextup { border: 0; box-shadow: var(--lift); }
+.nextup .nu-ic, .cont-home .nu-ic { background: var(--pri); }
+.nextup small, .cont-home small { color: var(--pri); }
+.pg { border: 0; box-shadow: var(--lift); }
+.pg.next { background: var(--pri); }
+.pg.next small { color: rgba(255, 255, 255, .8); }
+.pg.next .ph { color: #fff; }
+.seen-card, .more-facets, .tile { border: 0; box-shadow: var(--lift); }
+.t-ic { background: var(--cs); color: var(--cc); }
+
+/* 発見：検索・カード */
+.searchbox input { border: 0; border-radius: 999px; background-color: var(--surf-high); }
+.searchbox input:focus { outline: 2px solid var(--pri); }
+.find-card { border: 0; border-radius: var(--radius); box-shadow: var(--lift); overflow: hidden; background: #fff; }
+.fc-band { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--cs); }
+.fc-ic { flex: 0 0 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--cc); color: #fff; font-size: 18px; }
+.fc-cl { font-size: .76rem; font-weight: 800; color: var(--cc); }
+.fc-band .fc-seen { position: static; margin-left: auto; }
+.rr-thumb { flex: 0 0 44px; height: 44px; border-radius: 50%; background: var(--cs); color: var(--cc); font-size: 22px; }
+
+/* 予定 */
+.tabband { background: rgba(248, 249, 255, .94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 var(--line); }
+.tabband a { color: var(--sub2); }
+.tabband a.active { color: var(--pri); border-bottom-color: var(--pri); }
+.eyebrow-s { color: var(--pri); }
+.seg { background: var(--surf-high); border-radius: 999px; }
+.seg button, .seg a { border-radius: 999px; }
+.seg button.on, .seg a.on { color: var(--pri); box-shadow: var(--lift); }
+.opt { border-radius: var(--radius); }
+.opt.on { border-color: var(--pri); background: #fff5f6; }
+.opt.on .radio { border-color: var(--pri); }
+.opt.on .radio::after { background: var(--pri); }
+.person.on { border-color: var(--pri); }
+.ag { border-radius: var(--radius-sm); }
+.sheet { border-radius: 16px 16px 0 0; }
+.sheet-row { border: 0; box-shadow: var(--lift); }
+.sheet-row.on { background: #fff5f6; box-shadow: 0 0 0 2px var(--pri); }
+.sheet-row .ph, .sheet-row.on .ph { color: var(--pri); }
+
+/* 便利ツール */
+.tool { border: 0; box-shadow: var(--lift); }
+.tool .ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--pri-soft); color: var(--pri); }
+.toolgrid .tool:nth-child(2) .ic { background: var(--peach); color: var(--peach-ink); }
+.toolgrid .tool:nth-child(3) .ic { background: var(--jade-soft); color: var(--jade); }
+.toolgrid .tool:nth-child(4) .ic { background: var(--err-soft); color: var(--err-ink); }
+.list-btn { border: 0; box-shadow: var(--lift); }
+
+/* ディズニー */
+.quick { position: static; margin-top: 0; }
+.quick a, .quick button { border: 0; border-radius: var(--radius); background: #fff; box-shadow: var(--lift); }
+.quick a .ic, .quick button .ic { border-radius: 50%; }
+.dz-tip { background: var(--surf-low); color: var(--ink); }

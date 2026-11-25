@@ -186,10 +186,10 @@
   const findHref = (f) => f.link || `#/find/${f.id}`;
   const badgeHtml = (b) => `<span class="fb fb-${b}"><i class="ph ph-${FIND_BADGES[b].icon}"></i>${FIND_BADGES[b].label}</span>`;
   const isLatin = (t) => /^[A-Za-z0-9 ]+$/.test(t);
-  function findCard(f) { // 横に流れるカード
+  function findCard(f) { // 横に流れるカード（案A：色の帯にジャンルのアイコン）
     const c = FIND_CATS[f.cat];
     return `<a class="find-card" href="${findHref(f)}">
-      <div class="fc-art c-${c.color || "navy"} ${isLatin(f.big) ? "latin" : ""}"><span class="fc-cat"><i class="ph ph-${c.icon}"></i>${c.label}</span><b>${esc(f.big)}</b>${seenOf(f) ? `<span class="fc-seen"><i class="ph ph-check"></i>見た</span>` : ""}</div>
+      <div class="fc-band c-${c.color || "navy"}"><span class="fc-ic"><i class="ph ph-${c.icon}"></i></span><span class="fc-cl">${c.label}</span>${seenOf(f) ? `<span class="fc-seen"><i class="ph ph-check"></i>見た</span>` : ""}</div>
       <div class="fc-body"><div class="fc-badges">${badgesOf(f).slice(0, 2).map(badgeHtml).join("")}</div><h4>${esc(f.name)}</h4><p>${esc(f.catch)}</p></div></a>`;
   }
   function findRow(f) { // 一覧の行
@@ -306,6 +306,15 @@
     ], "three");
   }
   const notFound = { title: "見つかりません", html: `<div class="empty">このページは準備中です</div>` };
+
+  /* ---------------- 案A：ページの見出し ----------------
+     色の面にアイコンの丸・小見出し・題名・ひとこと。飾りの大きな漢字や中国語の名前は出さない（中国語は「見せる」画面だけ） */
+  const SPOT_IC = { bund: "buildings", yuyuan: "flower-lotus", disney: "castle-turret", cruise: "boat", acrobat: "person-arms-spread", nanjing: "storefront", lujiazui: "city", xintiandi: "house-line", frenchconcession: "tree", hongkou: "bridge", suzhou: "waves", yangpu: "factory", locallife: "users-three", hotel: "bed" };
+  const ART_IC = { model: "calendar-check", rainy: "umbrella", comfort: "heart", why: "question", disneyguide: "castle-turret", transport: "train", food: "bowl-food", culture: "globe-hemisphere-east", chinese: "chat-circle-text", history: "scroll", architecture: "buildings", cities: "city", airport: "airplane-tilt", prep: "suitcase" };
+  const spotColor = (id) => SPOTS[id].color || (id === "yuyuan" ? "red" : "navy");
+  const pageHead = ({ color, icon, kicker, title, sub, lead, extra = "" }) => `<section class="phead c-${color || "navy"}">
+      <div class="ph-top"><span class="ph-ic"><i class="ph ph-${icon}"></i></span>${kicker ? `<span class="ph-kicker">${esc(kicker)}</span>` : ""}</div>
+      <h2>${esc(title)}</h2>${sub ? `<div class="ph-sub">${esc(sub)}</div>` : ""}${lead ? `<p class="ph-lead">${esc(lead)}</p>` : ""}${extra}</section>`;
 
   /* ---------------- ホーム：1画面完結のダッシュボード（案A・2026/11/25） ----------------
      スクロールなしの1画面に、どの機能へも1タップで行ける入口だけを並べる。見本：design/案A-ホーム.html */
@@ -562,7 +571,7 @@
   const landTag = (r) => { const land = DISNEY.lands[r.land]; return `<span class="land c-${land.color}"><i></i>${esc(land.name)}</span>`; };
   const dItem = (x) => `<div class="dz-item">
       <div class="dz-item-top"><span class="dz-tag ${D_TAG[x.tag] || ""}">${esc(x.tag)}</span></div>
-      <h4>${esc(x.name)}</h4>${x.zh ? `<div class="zh">${esc(x.zh)}</div>` : ""}<p>${esc(x.text)}</p></div>`;
+      <h4>${esc(x.name)}</h4><p>${esc(x.text)}</p></div>`;
   const dTips = (list) => `<ul class="dz-tips">${list.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`;
 
   PAGES.disney = (args, q) => {
@@ -583,13 +592,7 @@
     return {
       title: "ディズニー",
       html: `
-      <section class="spot-hero rose dz-hero">
-        <div class="big">迪士尼</div>
-        <div class="sub">SHANGHAI DISNEYLAND ・ 2026.12.11 FRI</div>
-        <h2>上海ディズニーランド</h2>
-        ${count}
-        <div class="dz-hours"><i class="ph ph-clock"></i><span>${esc(D.hours)}</span></div>
-      </section>
+      ${pageHead({ color: "rose", icon: "castle-turret", kicker: "12/11（金）", title: "上海ディズニーランド", extra: `${count}<div class="dz-hours"><i class="ph ph-clock"></i><span>${esc(D.hours)}</span></div>` })}
       <div class="quick">
         <button data-act="show-taxi" data-zh="${esc(tGo.zh)}" data-addr="${esc(tGo.addr)}" data-ja="${esc(tGo.ja)}"><span class="ic"><i class="ph ph-taxi"></i></span>行きの<br>タクシー</button>
         <button data-act="show-taxi" data-zh="${esc(tBack.zh)}" data-addr="${esc(tBack.addr)}" data-ja="${esc(tBack.ja)}"><span class="ic"><i class="ph ph-car-profile"></i></span>帰りの<br>タクシー</button>
@@ -642,7 +645,7 @@
     } else if (sub === "shows") {
       const o = q.get("o");
       body = `<div class="card acc-list">${D.shows.map((s) => accHtml(`<span class="acc-t"><span class="dz-tag ${D_TAG[s.tag] || ""}">${esc(s.tag)}</span><b>${esc(s.name)}</b><small>${esc(s.when)}</small></span>`,
-        `${s.zh ? `<div class="zh">${esc(s.zh)}</div>` : ""}<p>${esc(s.text)}</p>${s.place ? `<div class="dz-when"><i class="ph ph-map-pin"></i><span>${esc(s.place)}</span></div>` : ""}${s.tip ? `<div class="dz-tip">${esc(s.tip)}</div>` : ""}`, o === s.id)).join("")}</div>
+        `<p>${esc(s.text)}</p>${s.place ? `<div class="dz-when"><i class="ph ph-map-pin"></i><span>${esc(s.place)}</span></div>` : ""}${s.tip ? `<div class="dz-tip">${esc(s.tip)}</div>` : ""}`, o === s.id)).join("")}</div>
         <p class="tiny">タップすると説明が開きます。上演の時刻と休止は日によって変わるので、当日の朝に公式アプリで確認してください。</p>`;
     } else if (sub === "plan") {
       const planHtml = D.plan.map((p) => `<div class="ag k-${p.kind}"><i class="ph ph-${p.icon || KINDS[p.kind].icon} ag-ic"></i><div class="ag-body"><span class="ag-time">${esc(p.time)}</span><b>${esc(p.title)}</b>${p.text ? `<span class="ag-note">${esc(p.text)}</span>` : ""}${(p.split || []).map(([a, b, t]) => `<div class="ag-person">${avatar(a)}${avatar(b)}<span>${esc(t)}</span></div>`).join("")}</div></div>`).join("");
@@ -674,7 +677,7 @@
       html: `${crumb("#/disney/rides", "乗り物の一覧", `${i + 1} / ${D.rides.length}`)}
       <article class="card ride">
         <div class="ride-top"><span class="lvl ${LV[r.level].cls}">${LV[r.level].label}</span>${landTag(r)}</div>
-        <h3>${esc(r.name)}</h3><div class="zh">${esc(r.zh)}</div>
+        <h3>${esc(r.name)}</h3>
         <div class="ride-tags">${rideTags(r)}</div>
         <p>${esc(r.text)}</p>
         <dl class="meta"><dt>注目</dt><dd>${esc(r.look)}</dd><dt>4人で</dt><dd>${esc(r.note)}</dd>${r.tip ? `<dt>コツ</dt><dd>${esc(r.tip)}</dd>` : ""}</dl>
@@ -734,7 +737,7 @@
     }
 
     // 目次（入口）
-    const color = s.color ?? (id === "yuyuan" ? "red" : "");
+    const color = spotColor(id);
     const amap = `https://uri.amap.com/search?keyword=${encodeURIComponent(s.zh)}&city=${encodeURIComponent("上海")}`;
     const apple = `https://maps.apple.com/?q=${encodeURIComponent(s.zh)}&ll=${s.lat},${s.lng}`;
     const opts = allOptions().filter((o) => o.spot === id);
@@ -745,13 +748,7 @@
     return {
       title: s.name, fav: `spot:${id}`,
       html: `
-      <section class="spot-hero ${color}">
-        <div class="big">${esc(s.hero.big)}</div>
-        <div class="sub">${esc(s.hero.sub)}</div>
-        <h2>${esc(s.name)}</h2>
-        <div class="read">${[s.read, `${s.zh} ${s.pinyin}`, s.en].filter(Boolean).map(esc).join(" ・ ")}</div>
-        <div class="catch">${esc(s.catch)}</div>
-      </section>
+      ${pageHead({ color, icon: SPOT_IC[id] || "map-pin", kicker: s.area && s.area !== s.name ? `詳しい解説・${s.area}` : "詳しい解説", title: s.name, sub: s.read, lead: s.catch })}
       <div class="actions">
         <button class="action" data-act="show-taxi" data-zh="${esc(s.zh)}" data-addr="${esc(taxiAddr)}" data-ja="${esc(s.name)}"><i class="ph ph-taxi"></i> タクシーに見せる</button>
         <a class="action" href="${amap}" target="_blank" rel="noopener"><i class="ph ph-map-trifold"></i> 高徳地図</a>
@@ -805,7 +802,7 @@
     const ni = n ? nextUnread("a", id) : -1;
     return {
       title: a.title, fav: `article:${id}`,
-      html: `<section class="spot-hero ${a.hero?.color ?? "red"}"><div class="big" style="font-size:3rem">${esc(a.hero?.big || "")}</div><div class="sub">${esc(a.hero?.sub || "")}</div><h2>${esc(a.title)}</h2><div class="catch">${esc(a.lead)}</div></section>
+      html: `${pageHead({ color: a.hero?.color ?? "red", icon: ART_IC[id] || "book-open-text", kicker: "読み物", title: a.title, lead: a.lead })}
       <div class="pills" style="margin:14px 0 6px">${a.themes.map((t) => `<a class="pill" href="#/search?f=${encodeURIComponent(t)}">${esc(t)}</a>`).join("")}</div>
       ${intro ? `<div class="card article">${linkify(intro)}</div>` : ""}
       ${n ? `${progressHtml(p, ni >= 0 ? { href: `${hub}/${ni}`, title: `${ni + 1}. ${chapters[ni].h}` } : null)}
@@ -819,7 +816,7 @@
     const usedIn = Object.entries(SPOTS).filter(([, s]) => s.sections.some((x) => x.html.includes(`term:${args[0]}|`)));
     return {
       title: t.name, fav: `term:${args[0]}`,
-      html: `<div class="term-head"><span class="pill gray">用語</span><h2>${esc(t.name)}</h2><div class="read">${esc(t.read)}</div></div>
+      html: `${pageHead({ color: "gold", icon: "bookmark-simple", kicker: "用語", title: t.name, sub: t.read })}
       <div class="card article">${linkify(t.html)}</div>
       ${t.see.length || usedIn.length ? `<div class="section-title">あわせて読む</div><div class="card related">
         ${usedIn.map(([sid, s]) => `<a href="#/spot/${sid}">スポット：${esc(s.name)}</a>`).join("")}
@@ -830,14 +827,14 @@
   // 読むものの一覧（読み物・詳しい解説・用語）。それぞれ何章読んだかが分かる
   PAGES.reads = (args) => {
     const tab = ["article", "spot", "term"].includes(args[0]) ? args[0] : "article";
-    const row = (href, big, color, title, text, p) => `<a class="rrow" href="${href}">
-        <span class="rr-thumb c-${color || "navy"} ${/^[a-z?]+$/i.test(big) ? "latin" : [...big].length >= 3 ? "l3" : ""}">${esc(big)}</span>
+    const row = (href, icon, color, title, text, p) => `<a class="rrow" href="${href}">
+        <span class="rr-thumb c-${color || "navy"}"><i class="ph ph-${icon}"></i></span>
         <span class="rr-body"><b>${esc(title)}</b><small>${esc(text)}</small>
         <span class="rr-prog"><span class="bar"><i style="width:${Math.round((p.done / p.total) * 100)}%"></i></span><em>${p.done >= p.total ? "読んだ" : `${p.done}/${p.total}章`}</em></span></span>
         <i class="ph ph-caret-right mr-go"></i></a>`;
     let list = "";
-    if (tab === "article") list = Object.entries(ARTICLES).map(([id, a]) => row(`#/article/${id}`, a.hero?.big || "", a.hero?.color ?? "red", a.title, a.lead, progressOf("a", id))).join("");
-    if (tab === "spot") list = Object.entries(SPOTS).map(([id, s]) => row(`#/spot/${id}`, s.hero.big, s.color ?? (id === "yuyuan" ? "red" : ""), s.name, s.catch, progressOf("s", id))).join("");
+    if (tab === "article") list = Object.entries(ARTICLES).map(([id, a]) => row(`#/article/${id}`, ART_IC[id] || "book-open-text", a.hero?.color ?? "red", a.title, a.lead, progressOf("a", id))).join("");
+    if (tab === "spot") list = Object.entries(SPOTS).map(([id, s]) => row(`#/spot/${id}`, SPOT_IC[id] || "map-pin", spotColor(id), s.name, s.catch, progressOf("s", id))).join("");
     if (tab === "term") list = Object.entries(TERMS).map(([id, t]) => mrow({ href: `#/term/${id}`, icon: "bookmark-simple", title: t.name, sub: preview(t.html, 40), read: isRead(`t:${id}`) })).join("");
     const tabs = [["article", "読み物", Object.keys(ARTICLES).length], ["spot", "詳しい解説", Object.keys(SPOTS).length], ["term", "用語", Object.keys(TERMS).length]];
     return {
@@ -865,13 +862,7 @@
     return {
       title: f.name, fav: `find:${f.id}`,
       html: `
-      <section class="spot-hero ${c.color}">
-        <div class="big ${isLatin(f.big) ? "latin" : ""}">${esc(f.big)}</div>
-        <div class="sub">${esc(c.label)} ・ DISCOVER SHANGHAI</div>
-        <h2>${esc(f.name)}</h2>
-        <div class="read">${esc(f.zh)}</div>
-        <div class="catch">${esc(f.catch)}</div>
-      </section>
+      ${pageHead({ color: c.color || "navy", icon: c.icon, kicker: c.label, title: f.name, lead: f.catch })}
       <div class="fc-badges" style="margin:14px 0 2px">${badgesOf(f).map(badgeHtml).join("")}</div>
       <div class="actions">
         <button class="action" data-act="show-taxi" data-zh="${esc(zhMain)}" data-addr="" data-ja="${esc(f.name)}"><i class="ph ph-taxi"></i> タクシーに見せる</button>
