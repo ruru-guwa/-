@@ -144,7 +144,7 @@
     document.title = out.title ? `${out.title}｜${TRIP.title}` : TRIP.title;
     $("#app").innerHTML = `
       <header class="appbar">
-        ${isRoot ? `<span class="brand" aria-hidden="true"><i class="ph ph-globe-hemisphere-east"></i></span>` : `<button class="iconbtn" data-act="back" aria-label="戻る">${IC.back}</button>`}
+        ${isRoot ? `<span class="brand seal" aria-hidden="true">上海</span>` : `<button class="iconbtn" data-act="back" aria-label="戻る">${IC.back}</button>`}
         <h1>${esc(out.title || TRIP.title)}</h1>
         <div class="appbar-r">${out.actions ?? (favKey ? `<button class="iconbtn ${isFav ? "on" : ""}" data-act="fav" data-key="${esc(favKey)}" aria-label="お気に入り">${isFav ? IC.starOn : IC.star}</button>` : `<button class="iconbtn" data-act="share" aria-label="共有">${IC.share}</button>`)}</div>
       </header>
@@ -382,7 +382,7 @@
           <div class="dd-grid">${days}</div>
         </section>
         <div class="dt">${tiles}</div>
-        <a class="dtips" href="#/tips"><i class="ph ph-lightbulb"></i><span class="dtips-chip">Tips</span><span class="dtips-text">${esc(trivia)}</span><i class="ph ph-caret-right"></i></a>
+        <a class="dtips" href="#/tips"><i class="ph ph-scroll"></i><span class="dtips-chip">Tips</span><span class="dtips-text">${esc(trivia)}</span><i class="ph ph-caret-right"></i></a>
       </div>`,
     };
   };
