@@ -1402,3 +1402,11 @@ button.db-btn { width: 100%; border: 0; text-align: left; cursor: pointer; }
   main:has(> .dash) { padding-top: 4px; }
   .dash { gap: 5px; }
 }
+
+/* ---------------- Tips：8秒ごとに切りかわる（2026/11/26） ----------------
+   ふわっと消えて次が出る。1行・2行で高さが変わって下がずれないよう、バーの高さは2行ぶんに固定 */
+.dtips-text { transition: opacity .25s ease; }
+.dtips-text.out { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .dtips-text { transition: none; } }
+@media (min-height: 740px) { .dtips { min-height: 58px; } }
+.tip-list { padding-left: 14px; padding-right: 14px; }

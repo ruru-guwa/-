@@ -164,7 +164,10 @@
   }
 
   const PAGES = {};
+  let tipTimer = null; // ホームの Tips の切りかえ（画面を描きかえるたびに止める）
   function render() {
+    // ホームを離れるときは Tips を止め、次にホームを開いたときは「つぎの豆知識」から
+    if (tipTimer) { clearInterval(tipTimer); tipTimer = null; tipState.i = (tipState.i + 1) % tipState.order.length; }
     const { parts, q } = parse();
     const page = PAGES[parts[0]] || PAGES.home;
     const out = page(parts.slice(1), q);
@@ -351,6 +354,11 @@
   /* ---------------- ホーム：1画面完結のダッシュボード（案A・2026/11/25） ----------------
      スクロールなしの1画面に、どの機能へも1タップで行ける入口だけを並べる。見本：design/案A-ホーム.html */
   const stripTag = (t) => t.replace(/^【[^】]*】/, "");
+  // Tips：ホームを開いている間、8秒ごとに次の豆知識へ切りかえる（2026/11/26 りゅうさんの希望「1日1個ではなく、さまざまなものに」）。
+  // 順番はアプリを開くたびにまぜる。ほかの画面へ行って戻ると、つぎの豆知識から
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const tipState = { order: shuffle(TRIVIA.map((_, k) => k)), i: 0 };
+  const TIP_MS = 8000;
   PAGES.home = () => {
     const ph = phase();
     const n = now(), sh = shParts(n);
@@ -393,7 +401,7 @@
       { href: "#/tools/emergency", icon: "first-aid-kit", c: "red", label: "領事館・病院", sub: "緊急ダイヤル" },
       { href: "#/tools", icon: "wrench", c: "gray", label: "便利ツール", sub: "クイズ・気になる", tab: true },
     ].map((t) => `<a class="dt-tile${t.tab ? " tab" : ""}" href="${t.href}">${t.badge ? `<span class="dt-badge">${t.badge}</span>` : ""}<span class="dt-ic c2-${t.c}"><i class="ph ph-${t.icon}"></i></span><b>${t.label}</b><small>${esc(t.sub)}</small></a>`).join("");
-    const trivia = TRIVIA[Math.floor(n.getTime() / 86400000) % TRIVIA.length];
+    const tipK = tipState.order[tipState.i % tipState.order.length];
 
     return {
       title: "ホーム",
@@ -404,13 +412,25 @@
           <a class="db-btn taxi" href="#/tools/taxi"><span class="db-top"><span class="db-ic"><i class="ph ph-taxi"></i></span><span class="db-chip">指差し提示</span></span><span class="db-label"><b>タクシーに見せる</b><small>打車指南・目的地カード</small></span></a>
           <a class="db-btn shop" href="#/tools/phrase"><span class="db-top"><span class="db-ic"><i class="ph ph-receipt"></i></span><span class="db-chip">注文・会計</span></span><span class="db-label"><b>お店で見せる</b><small>点餐・買単フレーズ</small></span></a>
         </div>
-        <a class="dtips" href="#/tips"><i class="ph ph-scroll"></i><span class="dtips-chip">Tips</span><span class="dtips-text">${esc(trivia)}</span><i class="ph ph-caret-right"></i></a>
+        <a class="dtips" href="#/tips?t=${tipK}"><i class="ph ph-scroll"></i><span class="dtips-chip">Tips</span><span class="dtips-text" aria-live="polite">${esc(TRIVIA[tipK])}</span><i class="ph ph-caret-right"></i></a>
         <section class="dd">
           <div class="dd-head"><span><i class="ph ph-calendar-dots"></i>旅程ダイレクトアクセス</span><small>タップして詳細へ</small></div>
           <div class="dd-grid">${days}</div>
         </section>
         <div class="dt">${tiles}</div>
       </div>`,
+      after() {
+        const bar = $(".dtips"), txt = $(".dtips-text");
+        if (!bar || !txt || TRIVIA.length < 2) return;
+        const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        tipTimer = setInterval(() => {
+          if (document.hidden) return; // 画面を見ていないときは進めない
+          tipState.i = (tipState.i + 1) % tipState.order.length;
+          const k = tipState.order[tipState.i];
+          const swap = () => { txt.textContent = TRIVIA[k]; addYen(txt); bar.setAttribute("href", `#/tips?t=${k}`); txt.classList.remove("out"); };
+          if (calm) swap(); else { txt.classList.add("out"); setTimeout(swap, 250); }
+        }, TIP_MS);
+      },
     };
   };
 
@@ -431,14 +451,15 @@
     };
   };
 
-  /* 豆知識の一覧（今日のものが先頭） */
-  PAGES.tips = () => {
-    const today = Math.floor(now().getTime() / 86400000) % TRIVIA.length;
-    const order = TRIVIA.map((_, k) => (today + k) % TRIVIA.length);
+  /* 豆知識の一覧。ホームの Tips から来たときは、押したときに出ていたものを先頭に（押せない一覧なので平らな card） */
+  PAGES.tips = (_, q) => {
+    const tv = q.get("t"), t = tv == null ? NaN : Number(tv);
+    const first = Number.isInteger(t) && t >= 0 && t < TRIVIA.length ? t : -1;
+    const order = first >= 0 ? [first, ...TRIVIA.map((_, k) => k).filter((k) => k !== first)] : TRIVIA.map((_, k) => k);
     return {
       title: "豆知識",
-      html: `<div class="card menu">${order.map((k, j) => `<div class="tip-row ${j === 0 ? "today" : ""}">${j === 0 ? `<span class="tip-tag">今日</span>` : ""}${esc(TRIVIA[k])}</div>`).join("")}</div>
-      <p class="tiny">毎日1つずつ、ホームの「Tips」に出ます。</p>`,
+      html: `<div class="card tip-list">${order.map((k, j) => `<div class="tip-row ${first >= 0 && j === 0 ? "today" : ""}">${first >= 0 && j === 0 ? `<span class="tip-tag">さっきの</span>` : ""}${esc(TRIVIA[k])}</div>`).join("")}</div>
+      <p class="tiny">ホームの「Tips」に、${TIP_MS / 1000}秒ごとに切りかわって出ます（全${TRIVIA.length}個）。</p>`,
     };
   };
 
