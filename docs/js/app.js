@@ -101,7 +101,7 @@
     disney: '<i class=\"ph ph-castle-turret\"></i>',
     map: '<i class=\"ph ph-map-trifold\"></i>',
     search: '<i class=\"ph ph-compass\"></i>',
-    tools: '<i class=\"ph ph-squares-four\"></i>',
+    tools: '<i class=\"ph ph-wrench\"></i>',
     back: '<i class=\"ph ph-caret-left\"></i>',
     star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9-4.3-4.1 5.9-.8L12 3.5Z"/></svg>',
     starOn: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9-4.3-4.1 5.9-.8L12 3.5Z"/></svg>',
@@ -115,7 +115,7 @@
     { id: "disney", label: "ディズニー", href: "#/disney" },
     { id: "map", label: "地図", href: "#/map" },
     { id: "search", label: "発見", href: "#/search" },
-    { id: "tools", label: "ツール", href: "#/tools" },
+    { id: "tools", label: "便利ツール", href: "#/tools" },
   ];
   function parse() {
     const h = location.hash.replace(/^#\/?/, "") || "home";
@@ -144,9 +144,9 @@
     document.title = out.title ? `${out.title}｜${TRIP.title}` : TRIP.title;
     $("#app").innerHTML = `
       <header class="appbar">
-        <button class="iconbtn ${isRoot ? "hidden" : ""}" data-act="back" aria-label="戻る">${IC.back}</button>
+        ${isRoot ? `<span class="brand" aria-hidden="true"><i class="ph ph-globe-hemisphere-east"></i></span>` : `<button class="iconbtn" data-act="back" aria-label="戻る">${IC.back}</button>`}
         <h1>${esc(out.title || TRIP.title)}</h1>
-        ${favKey ? `<button class="iconbtn ${isFav ? "on" : ""}" data-act="fav" data-key="${esc(favKey)}" aria-label="お気に入り">${isFav ? IC.starOn : IC.star}</button>` : `<button class="iconbtn" data-act="share" aria-label="共有">${IC.share}</button>`}
+        <div class="appbar-r">${out.actions ?? (favKey ? `<button class="iconbtn ${isFav ? "on" : ""}" data-act="fav" data-key="${esc(favKey)}" aria-label="お気に入り">${isFav ? IC.starOn : IC.star}</button>` : `<button class="iconbtn" data-act="share" aria-label="共有">${IC.share}</button>`)}</div>
       </header>
       <main>${out.html}</main>
       <nav class="tabbar">${TABS.map((t) => `<a href="${t.href}" class="${tabOf(parts) === t.id ? "active" : ""}">${IC[t.id]}<span>${t.label}</span></a>`).join("")}</nav>`;
@@ -307,126 +307,102 @@
   }
   const notFound = { title: "見つかりません", html: `<div class="empty">このページは準備中です</div>` };
 
-  /* ---------------- ホーム ---------------- */
+  /* ---------------- ホーム：1画面完結のダッシュボード（案A・2026/11/25） ----------------
+     スクロールなしの1画面に、どの機能へも1タップで行ける入口だけを並べる。見本：design/案A-ホーム.html */
+  const stripTag = (t) => t.replace(/^【[^】]*】/, "");
   PAGES.home = () => {
     const ph = phase();
-    const n = now();
-    const sh = shParts(n);
+    const n = now(), sh = shParts(n);
     const musts = coveredMusts();
-    let hero = "", main = "";
+    const left = Object.entries(CHECKLISTS).reduce((a, [k, l]) => a + l.items.filter((it) => !state.checks[ckey(k, it)]).length, 0);
 
+    // 右上の数字と、いちばん大事なお知らせ（出発前：未完了の準備／旅行中：いま・つぎの予定）
+    let count = "", alert = "";
     if (ph === "before") {
       const days = Math.ceil((new Date(TRIP.start) - n) / 86400000);
-      const prepLeft = CHECKLISTS.prep.items.filter((it) => !state.checks[ckey("prep", it)]).length;
-      hero = `<div class="count"><span>出発まで</span><b>${days}</b><span>日</span></div>`;
-      const prepTotal = CHECKLISTS.prep.items.length;
-      const slotsAll = PLAN.flatMap((d) => d.slots.filter((s) => s.type !== "fixed"));
-      const slotsDone = slotsAll.filter((s) => (s.type === "choice" && chosenOf(s)) || (s.type === "split" && Object.values(splitOf(s)).filter(Boolean).length)).length;
-      const nextPrep = CHECKLISTS.prep.items.find((it) => !state.checks[ckey("prep", it)]);
-      const tile = (href, label, val, total, unit, color) => `<a class="stat" href="${href}"><span class="stat-label">${label}</span>
-        <span class="stat-num"><b>${val}</b><small>/${total}${unit}</small></span>
-        <span class="bar"><i style="width:${Math.round((val / total) * 100)}%;background:var(${color})"></i></span></a>`;
-      main = `
-        <div class="label-s">準備の進み具合</div>
-        <div class="stats">
-          ${tile("#/tools/check", "出発前の準備", prepTotal - prepLeft, prepTotal, "件", "--jade")}
-          ${tile("#/plan", "予定を選んだ枠", slotsDone, slotsAll.length, "枠", "--gold")}
-          ${tile("#/plan", "絶対行きたい", musts.size, MUSTS.length, "", "--red")}
-        </div>
-        ${nextPrep ? `<a class="nextup" href="#/tools/check"><span class="nu-ic"><i class="ph ph-check-square"></i></span><span class="nu-body"><small>つぎにやること</small><b>${esc(nextPrep)}</b></span><i class="ph ph-caret-right"></i></a>` : ""}`;
+      count = `<small>出発まで</small><span class="dc-num"><em>あと</em><b>${days}</b><span>日</span></span>`;
+      const next = CHECKLISTS.prep.items.find((it) => !state.checks[ckey("prep", it)]);
+      alert = next ? `<a class="ds-alert" href="#/tools/check/prep"><i class="ph ph-warning-circle"></i><span>未完了：${esc(stripTag(next))}</span><i class="ph ph-caret-right"></i></a>`
+        : `<a class="ds-alert ok" href="#/tools/check"><i class="ph ph-check-circle"></i><span>出発前の準備は全部できました</span><i class="ph ph-caret-right"></i></a>`;
     } else if (ph === "during") {
-      const di = PLAN.findIndex((d) => d.date === sh.date);
-      const day = PLAN[di];
-      hero = `<div class="count"><span>旅の</span><b>${di + 1}</b><span>日目 ・ ${day ? esc(day.title) : ""}</span></div>`;
+      const di = PLAN.findIndex((d) => d.date === sh.date), day = PLAN[di];
+      count = `<small>旅の</small><span class="dc-num"><b>${di + 1}</b><span>日目</span></span>`;
       if (day) {
-        const slots = day.slots;
-        const cur = slots.find((s) => toMin(s.time) <= sh.min && sh.min < toMin(s.end));
-        const next = slots.find((s) => toMin(s.time) > sh.min);
-        const slotCard = (s, cls, label) => {
-          const sum = slotSummary(s);
-          const opt = s.type === "choice" ? chosenOf(s) : null;
-          return `<a class="card ${cls}" href="${s.type === "fixed" ? `#/plan/${di}` : `#/plan/${di}/${s.id}`}" style="display:block;color:inherit">
-            <div class="label">${label}・${s.time}〜${s.end}</div>
-            <h3>${esc(sum || s.title)}</h3>
-            ${opt?.move ? `<div class="muted"><i class="ph ph-person-simple-walk"></i> ${esc(opt.move)}</div>` : ""}
-            ${opt?.look ? `<div class="muted"><i class="ph ph-eye"></i> ${esc(opt.look)}</div>` : ""}
-            ${!sum ? `<div class="muted">まだ選んでいません（候補 ${optionsOf(s).length} 件）</div>` : ""}
-          </a>`;
-        };
-        main = `<div class="section-title">今日の予定 <small><a href="#/plan/${di}">一日を見る ›</a></small></div>
-          ${cur ? slotCard(cur, "now-card", "いま") : `<div class="card muted">いまの時間に予定はありません</div>`}
-          ${next ? slotCard(next, "now-card next-card", "つぎ") : ""}`;
+        const cur = day.slots.find((x) => toMin(x.time) <= sh.min && sh.min < toMin(x.end));
+        const s = cur || day.slots.find((x) => toMin(x.time) > sh.min);
+        if (s) alert = `<a class="ds-alert now" href="${s.type === "fixed" ? `#/plan/${di}` : `#/plan/${di}/${s.id}`}"><i class="ph ph-clock"></i><span>${cur ? "いま" : "つぎ"}：${esc(slotSummary(s) || s.title)}（${s.time}〜）</span><i class="ph ph-caret-right"></i></a>`;
       }
     } else {
-      hero = `<div class="count"><span>おかえりなさい</span></div>`;
-      main = `<a class="nextup" href="#/tools/quiz"><span class="nu-ic"><i class="ph ph-question"></i></span><span class="nu-body"><small>旅をふりかえる</small><b>上海クイズで、4日間で見たものをおさらい</b></span><i class="ph ph-caret-right"></i></a>`;
+      count = `<small>旅の思い出</small><span class="dc-num"><b>4</b><span>日間</span></span>`;
+      alert = `<a class="ds-alert now" href="#/tools/quiz"><i class="ph ph-question"></i><span>上海クイズで、4日間をふりかえる</span><i class="ph ph-caret-right"></i></a>`;
     }
 
-    const dayN = Math.floor(n.getTime() / 86400000);
-    const trivia = TRIVIA[dayN % TRIVIA.length];
-
-    // 4日間の予定（予定の画面への入口）
-    const daysHtml = `<div class="section-title">4日間の予定 <small><a href="#/plan">ひらく ›</a></small></div>
-      <div class="days">${PLAN.map((d, i) => {
-        const done = d.slots.filter(slotDone).length, all = d.slots.length;
-        const today = d.date === sh.date, park = /ディズニー/.test(d.title);
-        return `<a class="day-tile ${today ? "today" : ""} ${park ? "park" : ""}" href="#/plan/${i}">
-          <span class="dt-top"><b>${d.label}</b><small>${d.dow}</small>${park ? `<i class="ph ph-castle-turret"></i>` : ""}${today ? `<span class="dt-now">今日</span>` : ""}</span>
-          <span class="dt-title">${esc(d.title)}</span>
-          <span class="bar"><i style="width:${Math.round((done / all) * 100)}%"></i></span>
-          <span class="dt-done">${done}/${all} 決定</span></a>`;
-      }).join("")}</div>`;
-
-    // 発見の入口（タップで一覧へ）
-    const cnt = (fn) => `${FINDS.filter(fn).length}件`;
-    const discTiles = tilesHtml([
-      { href: "#/search?b=hot", icon: FIND_BADGES.hot.icon, label: "今ホット", sub: cnt((f) => badgesOf(f).includes("hot")), color: "red" },
-      { href: "#/search?b=hidden", icon: FIND_BADGES.hidden.icon, label: "穴場", sub: cnt((f) => badgesOf(f).includes("hidden")), color: "teal" },
-      { href: "#/search?c=souvenir", icon: FIND_CATS.souvenir.icon, label: "お土産", sub: cnt((f) => f.cat === "souvenir"), color: "rose" },
-      { href: "#/search?c=food", icon: FIND_CATS.food.icon, label: "食べる", sub: cnt((f) => f.cat === "food"), color: "jade" },
-      { href: "#/search?b=dec", icon: FIND_BADGES.dec.icon, label: "12月だけ", sub: cnt((f) => badgesOf(f).includes("dec")), color: "navy" },
-      { href: "#/search?b=near", icon: FIND_BADGES.near.icon, label: "ホテルの近く", sub: cnt((f) => badgesOf(f).includes("near")), color: "gold" },
-    ], "three");
-    const cont = continueItem();
+    const days = PLAN.map((d, i) => {
+      const done = d.slots.filter(slotDone).length, all = d.slots.length;
+      const park = /ディズニー/.test(d.title), today = d.date === sh.date;
+      return `<a class="dd-day ${park ? "hot" : ""} ${today ? "today" : ""}" href="#/plan/${i}">${today ? `<span class="dd-flag">今日</span>` : park ? `<span class="dd-flag">注目</span>` : ""}
+        <span class="dd-date">${d.label}(${d.dow})</span><b>${esc(d.short || d.title)}</b><small>${done}/${all} 済</small></a>`;
+    }).join("");
+    const tiles = [
+      { href: "#/tools/rate", icon: "currency-cny", c: "green", label: "為替計算", sub: `1元 ≈ ${state.rate}円` },
+      { href: "#/tools/check", icon: "list-checks", c: "gray", label: "持ち物準備", sub: "持ち物・ToDo", badge: left ? `未完${left}` : "" },
+      { href: "#/musts", icon: "bookmark-simple", c: "pink", label: "行きたい", sub: `${musts.size}/${MUSTS.length} 済` },
+      { href: "#/search", icon: "fork-knife", c: "peach", label: "観光・グルメ", sub: `全${FINDS.length}件` },
+      { href: "#/reads/article", icon: "book-open-text", c: "gray", label: "旅のしおり", sub: `全${Object.keys(ARTICLES).length}記事` },
+      { href: "#/tools/emergency", icon: "first-aid-kit", c: "red", label: "領事館・病院", sub: "緊急ダイヤル" },
+    ].map((t) => `<a class="dt-tile" href="${t.href}">${t.badge ? `<span class="dt-badge">${t.badge}</span>` : ""}<span class="dt-ic c2-${t.c}"><i class="ph ph-${t.icon}"></i></span><b>${t.label}</b><small>${esc(t.sub)}</small></a>`).join("");
+    const trivia = TRIVIA[Math.floor(n.getTime() / 86400000) % TRIVIA.length];
 
     return {
-      title: "",
-      html: `
-      <section class="hero">
-        <div class="eyebrow">SHANGHAI ・ 2026.12.9 — 12.12</div>
-        <h2>上海 <span class="num">2026</span></h2>
-        <p>${esc(TRIP.subtitle)}</p>
-        ${hero}
-      </section>
+      title: "ホーム",
+      actions: `<a class="hb sos" href="#/tools/emergency" aria-label="緊急連絡先">SOS</a><button class="hb" data-act="share" aria-label="共有"><i class="ph ph-share-network"></i></button><a class="hb" href="#/tools/settings" aria-label="設定"><i class="ph ph-gear"></i></a>`,
+      html: `<div class="dash">
+        <section class="ds">
+          <div class="ds-top">
+            <div class="ds-left"><div class="ds-meta"><span class="ds-badge">${esc(TRIP.badge)}</span><span class="ds-date">2026.12.9 - 12.12</span></div><h2>${esc(TRIP.headline)}</h2></div>
+            <div class="ds-count">${count}</div>
+          </div>
+          ${alert}
+        </section>
+        <div class="db">
+          <a class="db-btn taxi" href="#/tools/taxi"><span class="db-top"><span class="db-ic"><i class="ph ph-taxi"></i></span><span class="db-chip">指差し提示</span></span><span class="db-label"><b>タクシーに見せる</b><small>打車指南・目的地カード</small></span></a>
+          <a class="db-btn shop" href="#/tools/phrase"><span class="db-top"><span class="db-ic"><i class="ph ph-receipt"></i></span><span class="db-chip">注文・会計</span></span><span class="db-label"><b>お店で見せる</b><small>点餐・買単フレーズ</small></span></a>
+        </div>
+        <section class="dd">
+          <div class="dd-head"><span><i class="ph ph-calendar-dots"></i>旅程ダイレクトアクセス</span><small>タップして詳細へ</small></div>
+          <div class="dd-grid">${days}</div>
+        </section>
+        <div class="dt">${tiles}</div>
+        <a class="dtips" href="#/tips"><i class="ph ph-lightbulb"></i><span class="dtips-chip">Tips</span><span class="dtips-text">${esc(trivia)}</span><i class="ph ph-caret-right"></i></a>
+      </div>`,
+    };
+  };
 
-      <div class="quick">
-        <a href="#/tools/taxi"><span class="ic"><i class="ph ph-taxi"></i></span>タクシーに<br>見せる</a>
-        <a href="#/tools/phrase"><span class="ic"><i class="ph ph-bowl-food"></i></span>お店で<br>見せる</a>
-        <a href="#/tools/rate"><span class="ic"><i class="ph ph-currency-cny"></i></span>為替<br>1元≒${state.rate}円</a>
-        <a href="#/tools/emergency"><span class="ic"><i class="ph ph-siren"></i></span>緊急<br>連絡先</a>
-      </div>
+  /* 行きたい：4人の「絶対に行きたい」5つと、それが入っている予定 */
+  PAGES.musts = () => {
+    const covered = coveredMusts();
+    const chosen = (o) => (o.slot.type === "split" ? Object.values(splitOf(o.slot)).includes(o.id) : state.sel[o.slot.id] === o.id);
+    const all = allOptions();
+    return {
+      title: "行きたい",
+      html: `<div class="prog"><div class="prog-top"><span>予定に入った <b>${covered.size}</b> / ${MUSTS.length}</span>${covered.size === MUSTS.length ? `<span class="prog-done"><i class="ph ph-check-circle"></i> 全部入りました</span>` : ""}</div><span class="bar"><i style="width:${Math.round((covered.size / MUSTS.length) * 100)}%"></i></span></div>
+      <div class="card menu">${MUSTS.map((m, i) => {
+        const opts = all.filter((o) => (o.covers || []).includes(m.id)), got = opts.filter(chosen), go = got[0] || opts[0];
+        return mrow({ href: go ? `#/plan/${go.dayIndex}/${go.slot.id}` : "#/plan", n: i + 1, title: m.label, read: covered.has(m.id),
+          sub: got.length ? `入っている予定：${got.map((o) => `${o.day.label} ${o.slot.title}「${o.title}」`).join("、")}` : `まだ予定に入っていません（候補 ${opts.length} か所）` });
+      }).join("")}</div>
+      <p class="tiny">4人が「絶対に行きたい」と決めた5つ。予定の候補で選ぶと✓がつきます。行を押すと、その時間帯の候補のページへ。</p>`,
+    };
+  };
 
-      ${ph === "during" ? main + daysHtml : daysHtml + main}
-
-      ${cont ? `<a class="nextup cont-home" href="${cont.href}"><span class="nu-ic"><i class="ph ph-play-circle"></i></span><span class="nu-body"><small>つづきから読む ・ ${esc(cont.name)}</small><b>${esc(cont.title)}</b></span><i class="ph ph-caret-right"></i></a>` : ""}
-
-      <div class="section-title">今日の発見 <small><a href="#/search">もっと発見 ›</a></small></div>
-      ${(() => { const f = todaysFind(); const c = FIND_CATS[f.cat]; return `<a class="pick" href="${findHref(f)}"><div class="pick-art c-${c.color || "navy"} ${isLatin(f.big) ? "latin" : ""}"><b>${esc(f.big)}</b></div><div class="pick-body"><div class="fc-badges">${badgesOf(f).map(badgeHtml).join("")}</div><h3>${esc(f.name)}</h3><p>${esc(f.catch)}</p></div></a>`; })()}
-      <button class="dice" data-act="random"><i class="ph ph-shuffle"></i> ランダムで1つ発見する</button>
-
-      <div class="section-title">発見する <small><a href="#/search">すべて ›</a></small></div>
-      ${discTiles}
-
-      <div class="section-title">読む</div>
-      ${readTiles()}
-
-      <div class="section-title">今日の豆知識</div>
-      <div class="card trivia"><div class="label"><i class="ph ph-lightbulb"></i> 上海トリビア</div>${esc(trivia)}</div>
-
-      ${state.hist.length ? `<div class="section-title">最近見たページ</div>
-      <div class="card related">${state.hist.slice(0, 3).map((h) => `<a href="${hrefOfKey(h.key)}">${esc(h.title)}</a>`).join("")}</div>` : ""}
-      <p class="foot-note">内容は2026年11月下旬の調べです。営業時間や料金は、行く前にもう一度確認してください。<br>地図のデータ © OpenStreetMap contributors</p>
-`,
+  /* 豆知識の一覧（今日のものが先頭） */
+  PAGES.tips = () => {
+    const today = Math.floor(now().getTime() / 86400000) % TRIVIA.length;
+    const order = TRIVIA.map((_, k) => (today + k) % TRIVIA.length);
+    return {
+      title: "豆知識",
+      html: `<div class="card menu">${order.map((k, j) => `<div class="tip-row ${j === 0 ? "today" : ""}">${j === 0 ? `<span class="tip-tag">今日</span>` : ""}${esc(TRIVIA[k])}</div>`).join("")}</div>
+      <p class="tiny">毎日1つずつ、ホームの「Tips」に出ます。</p>`,
     };
   };
 
@@ -985,13 +961,15 @@
           <span class="sc-num"><b>${seenN}</b><small>/ ${FINDS.length}</small></span>
           <span class="sc-body"><b>見た発見</b><span class="bar"><i style="width:${Math.round((seenN / FINDS.length) * 100)}%"></i></span><small>まだ見ていない ${FINDS.length - seenN} 件を一覧で見る</small></span>
           <i class="ph ph-caret-right"></i></a>
-        <div class="section-title">今日のおすすめ <small>毎日入れかわる</small></div>
+        ${(() => { const c = continueItem(); return c ? `<a class="nextup cont-home" href="${c.href}"><span class="nu-ic"><i class="ph ph-play-circle"></i></span><span class="nu-body"><small>つづきから読む ・ ${esc(c.name)}</small><b>${esc(c.title)}</b></span><i class="ph ph-caret-right"></i></a>` : ""; })()}
+        <div class="section-title">今日の発見 <small>毎日入れかわる</small></div>
         <div class="hscroll">${dailyPicks().map(findCard).join("")}</div>
         <div class="section-title">読む</div>
         ${readTiles()}
         <details class="more-facets"><summary>テーマ・エリア・時間帯で解説を探す</summary>
           ${Object.entries(FACETS).map(([name, vals], gi) => `<div class="facet"><h4>${name}</h4><div class="chips">${vals.map((v, i) => `<a class="chip dot d${(gi * 3 + i) % 6} ${f.includes(v) ? "on" : ""}" href="${chipHref(v)}">${esc(v)}</a>`).join("")}</div></div>`).join("")}
-        </details>`;
+        </details>
+        ${state.hist.length ? `<div class="section-title">最近見たページ</div><div class="card related">${state.hist.slice(0, 5).map((h) => `<a href="${hrefOfKey(h.key)}">${esc(h.title)}</a>`).join("")}</div>` : ""}`;
     }
 
     return {
@@ -1162,7 +1140,7 @@
     if (sub && TOOLS[sub]) return TOOLS[sub](args[1]);
     const t = (href, ic, b, s) => `<a class="tool" href="${href}"><span class="ic"><i class="ph ph-${ic}"></i></span><b>${b}</b><small>${s}</small></a>`;
     return {
-      title: "ツール",
+      title: "便利ツール",
       html: `<div class="section-title" style="margin-top:6px">旅行中によく使う</div>
       <div class="toolgrid">
         ${t("#/tools/taxi", "taxi", "タクシーに見せる", "行き先を中国語で大きく表示")}
@@ -1227,6 +1205,12 @@
     emergency: () => ({
       title: "緊急連絡先",
       html: `<div class="card emg">${EMERGENCY.map((e) => `<a href="tel:${e.num.replace(/[^+\d]/g, "")}"><div><div>${esc(e.label)}</div>${e.note ? `<div class="tiny">${esc(e.note)}</div>` : ""}</div><b>${esc(e.num)}</b></a>`).join("")}</div>
+      <div class="section-title">日本語が通じる病院 <small>ホテルから近い順（目安）</small></div>
+      <div class="card acc-list">${HOSPITALS.map((h) => accHtml(`<span class="acc-t">${h.h24 ? `<span class="dz-tag t-new">24時間</span>` : ""}<b>${esc(h.name)}</b><small>${esc(h.area)}</small></span>`,
+        `<table class="kv"><tr><th>住所</th><td>${esc(h.addr)}</td></tr><tr><th>時間</th><td>${esc(h.hours)}</td></tr><tr><th>言葉</th><td>${esc(h.lang)}</td></tr>${h.tel ? `<tr><th>電話</th><td>${h.tel.map((t) => `<a href="tel:${t.replace(/[^+\d]/g, "")}">${esc(t)}</a>`).join("<br>")}</td></tr>` : ""}${h.note ? `<tr><th>メモ</th><td>${esc(h.note)}</td></tr>` : ""}</table>
+        <div class="hosp-act"><button class="action" data-act="show-taxi" data-zh="${esc(h.zh || h.addr)}" data-addr="${esc(h.zh ? h.addr : "")}" data-ja="${esc(h.name)}"><i class="ph ph-taxi"></i> タクシーに見せる</button></div>`)).join("")}</div>
+      <p class="tiny">上海市政府の日本語サイト「上海における国際医療」（2026年11月17日更新）より。電話番号は確認できたものだけ載せています。行く前に、ホテルのフロントで確認してもらうと安心です。命に関わるときは120（救急車）。</p>
+      <div class="card"><h3 style="font-size:1rem;margin-bottom:6px">病院に行くとき</h3><ul style="margin:0;font-size:.92rem"><li>パスポートを持っていく</li><li>海外旅行保険（クレジットカードに付いているものも）の連絡先と番号を、スマホに保存しておく</li><li>まずホテルのフロントに相談すると、病院への連絡やタクシーを頼みやすい</li></ul></div>
       <div class="card"><h3 style="font-size:1rem;margin-bottom:6px">パスポートを無くしたら</h3><ol style="margin:0;padding-left:1.2em;font-size:.92rem"><li>近くの警察（公安局）で紛失の証明をもらう</li><li>総領事館で帰国のための書類を申請する</li><li>出入境管理の窓口で手続きをする</li></ol><div class="tiny" style="margin-top:6px">詳しい手順は次の版で追加します。パスポートの写真をスマホに保存しておくと安心です。</div></div>`,
     }),
     check: (which) => { // 入口（2つのリスト）→ リストごとのページ
