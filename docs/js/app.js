@@ -1492,6 +1492,8 @@
   function keepRender() { const y = scrollY; render(); window.scrollTo(0, y); }
   function applyLarge() { document.documentElement.classList.toggle("large", !!state.large); }
 
+  // iPhone の Safari は、これがないと「押したとき」の見た目（:active）が出ない
+  document.addEventListener("touchstart", () => {}, { passive: true });
   window.addEventListener("hashchange", render);
   applyLarge();
   render();

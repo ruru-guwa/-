@@ -1332,3 +1332,73 @@ button.db-btn { width: 100%; border: 0; text-align: left; cursor: pointer; }
 /* お店で見せる：読点（，）の所で折り返す。長いフレーズ（13文字以上）は少し小さく */
 .show .zh { word-break: keep-all; overflow-wrap: anywhere; }
 .show .zh.long { font-size: clamp(1.8rem, 8.5vw, 3.4rem); }
+
+/* ================= 押せるもの・押せないもの（2026/11/26「どこが押せるボタンか分からない」） =================
+   押せるもの：うすい枠＋下の厚み（3pxの濃い縁）＋ふんわりした影で「浮いたボタン」に。押すと2px沈む
+   押せないもの（説明のカード・見出しの面・情報のマス・時間割）：影なし。うすい枠線だけの平らな面
+   行が並ぶ入れ物（目次・一覧・関連・開く行・緊急連絡先）：入れ物を浮かせ、行には右の矢印と押したときの色 */
+:root {
+  --line2: #e1e4ec;
+  --edge: #d3d7e1;
+  --tap: 0 3px 0 var(--edge), 0 6px 14px -6px rgba(24, 28, 34, .28);
+  --tap-on: 0 1px 0 var(--edge), 0 2px 6px -3px rgba(24, 28, 34, .25);
+}
+
+/* 押せないもの：平らに */
+.card, .phead, .gl, .dd, .dz-info, .tl, .ds { box-shadow: none; }
+.card, .gl, .dd, .dz-info, .tl { border: 1px solid var(--line2); }
+
+/* 押せるもの（白いボタン） */
+.dt-tile, .dd-day, .tile, .tool, .find-card, .seen-card, .nextup, .pg:not(.none), .action, .list-btn, .sheet-row,
+.dtips, .hb, .card.slot-link, .opt, .quiz-a button, .btn, .favlink, .dice, .cta.alt, .ds-alert.now, .more-facets,
+.card.menu, .card.list-card, .card.related, .card.acc-list, .card.emg, .dz-more {
+  box-shadow: var(--tap); border: 1px solid var(--line2);
+}
+.dice { border-style: solid; }
+.quiz-a button:disabled { box-shadow: none; }
+.sheet-row.on { box-shadow: 0 0 0 2px var(--pri), var(--tap); }
+
+/* 押せるもの（色つきのボタン）：同じ色の濃い縁 */
+.db-btn.taxi { box-shadow: 0 3px 0 #e6b083, 0 6px 14px -6px rgba(172, 99, 0, .45); }
+.db-btn.shop, .cont, .dd-day.hot, .fab { box-shadow: 0 3px 0 #f0a8ae, 0 6px 14px -6px rgba(186, 0, 53, .35); }
+.ds-alert { box-shadow: 0 3px 0 #f2b6b0, 0 6px 14px -6px rgba(147, 0, 10, .3); }
+.ds-alert.ok { box-shadow: 0 3px 0 #a7d8c2, 0 6px 14px -6px rgba(0, 80, 40, .3); }
+.cta:not(.alt), .say-btn:not(.on), .pg.next { box-shadow: 0 3px 0 var(--pri-deep), 0 6px 14px -6px rgba(186, 0, 53, .5); }
+.say-btn.on { box-shadow: 0 3px 0 #f0a8ae; }
+.hb.sos { box-shadow: 0 2px 0 #f2b6b0; }
+.dz-info-go { box-shadow: 0 2px 0 #f0a8ae; }
+
+/* 小さな丸いボタン（絞りこみ・こんな人に・テーマ・乗りたい人・乗り物の名前） */
+.chip, a.pill, .fit, .person, .dz-g-rides a { border: 1px solid var(--line2); box-shadow: 0 2px 0 var(--edge); }
+.chip.on, .fit.on, .person.on { box-shadow: 0 1px 0 #f0a8ae; }
+
+/* 押したとき：2px沈む */
+.dt-tile, .dd-day, .tile, .tool, .find-card, .seen-card, .nextup, .pg, .action, .list-btn, .dtips, .hb, .card.slot-link, .opt,
+.quiz-a button, .btn, .favlink, .dice, .db-btn, .cta, .say-btn, .ds-alert, .dz-info-go, .fab, .cont, .chip, a.pill, .fit, .person, .dz-g-rides a {
+  transition: transform .06s ease, box-shadow .06s ease;
+}
+:is(.dt-tile, .dd-day, .tile, .tool, .find-card, .seen-card, .nextup, .pg:not(.none), .action, .list-btn, .dtips, .hb, .card.slot-link, .opt,
+  .quiz-a button:not(:disabled), .btn, .favlink, .dice, .db-btn, .cta, .say-btn, .ds-alert, .dz-info-go, .fab, .cont, .chip, a.pill, .fit, .person, .dz-g-rides a):active {
+  transform: translateY(2px); box-shadow: var(--tap-on);
+}
+
+/* 行（一覧の中）：押したときに色。発見の行にも右の矢印 */
+:is(.mrow, .find-row, .ride-row, .related a, .emg a, .result, .acc-h, .dz-more a, .mission, .sheet-row):active { background: var(--surf-low); }
+.find-row { position: relative; padding-right: 22px; }
+.find-row::after { content: "\e13a"; font-family: "Phosphor"; position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--faint); font-size: 16px; line-height: 1; }
+/* 情報のマス（所要時間・歩く量・予算…）は、押せないことが分かるよう、うすい灰色の面にして枠もなくす。アイコンの丸は白 */
+.gl { background: var(--surf); border: 0; box-shadow: none; }
+.gl > .ph { background: #fff; }
+/* 発見の入口の丸いジャンルのボタンも浮かせる */
+.pp-ic { box-shadow: 0 3px 0 var(--edge), 0 5px 10px -5px rgba(24, 28, 34, .3); transition: transform .06s ease, box-shadow .06s ease; }
+.pp:active .pp-ic { transform: translateY(2px); box-shadow: var(--tap-on); }
+.pp.on .pp-ic { box-shadow: 0 3px 0 var(--pri-deep); }
+/* 地図の「＋・−・現在地」と、チェックを押して切りかえる準備リストの入れ物も浮かせる */
+.map-ctrl button { box-shadow: 0 3px 0 var(--edge), 0 5px 10px -5px rgba(24, 28, 34, .3); border: 1px solid var(--line2); transition: transform .06s ease, box-shadow .06s ease; }
+.map-ctrl button:active { transform: translateY(2px); box-shadow: var(--tap-on); }
+.card:has(> .mission) { box-shadow: var(--tap); }
+/* 枠線を足した分、高さの小さい画面ではすき間を1px ずつ詰める */
+@media (max-height: 700px) {
+  main:has(> .dash) { padding-top: 4px; }
+  .dash { gap: 5px; }
+}
