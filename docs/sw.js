@@ -1,5 +1,5 @@
 /* オフラインでも開けるように、しおりのファイルを端末に保存する */
-const CACHE = "sh2026-v21";
+const CACHE = "sh2026-v22";
 const FILES = [
   "./", "./index.html", "./css/fonts.css", "./css/icons.css", "./fonts/phosphor/Phosphor.woff2", "./fonts/outfit-latin.woff2", "./css/style.css", "./js/data.js", "./js/finds.js", "./js/mapdata.js", "./js/disney.js", "./js/app.js",
   "./manifest.webmanifest", "./icons/icon.svg", "./icons/icon-180.png", "./icons/icon-512.png",

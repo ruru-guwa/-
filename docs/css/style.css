@@ -1215,3 +1215,6 @@ ul.timeline li b { color: var(--pri); }
 
 /* 下のタブ：選んでいるタブの下に小さな朱の菱形 */
 .tabbar a.active::after { content: ""; width: 5px; height: 5px; margin-top: 1px; background: var(--pri); transform: rotate(45deg); }
+
+/* ホーム：見出しと日数をやめたので、お知らせのバーを単独で置く（2026/11/25） */
+.dash > .ds-alert { margin-top: 0; min-height: 48px; box-shadow: var(--lift); }

@@ -325,24 +325,20 @@
     const musts = coveredMusts();
     const left = Object.entries(CHECKLISTS).reduce((a, [k, l]) => a + l.items.filter((it) => !state.checks[ckey(k, it)]).length, 0);
 
-    // 右上の数字と、いちばん大事なお知らせ（出発前：未完了の準備／旅行中：いま・つぎの予定）
-    let count = "", alert = "";
+    // いちばん大事なお知らせ（出発前：未完了の準備／旅行中：いま・つぎの予定）。見出しと日数は出さない（りゅうさんの希望）
+    let alert = "";
     if (ph === "before") {
-      const days = Math.ceil((new Date(TRIP.start) - n) / 86400000);
-      count = `<small>出発まで</small><span class="dc-num"><em>あと</em><b>${days}</b><span>日</span></span>`;
       const next = CHECKLISTS.prep.items.find((it) => !state.checks[ckey("prep", it)]);
       alert = next ? `<a class="ds-alert" href="#/tools/check/prep"><i class="ph ph-warning-circle"></i><span>未完了：${esc(stripTag(next))}</span><i class="ph ph-caret-right"></i></a>`
         : `<a class="ds-alert ok" href="#/tools/check"><i class="ph ph-check-circle"></i><span>出発前の準備は全部できました</span><i class="ph ph-caret-right"></i></a>`;
     } else if (ph === "during") {
       const di = PLAN.findIndex((d) => d.date === sh.date), day = PLAN[di];
-      count = `<small>旅の</small><span class="dc-num"><b>${di + 1}</b><span>日目</span></span>`;
       if (day) {
         const cur = day.slots.find((x) => toMin(x.time) <= sh.min && sh.min < toMin(x.end));
         const s = cur || day.slots.find((x) => toMin(x.time) > sh.min);
         if (s) alert = `<a class="ds-alert now" href="${s.type === "fixed" ? `#/plan/${di}` : `#/plan/${di}/${s.id}`}"><i class="ph ph-clock"></i><span>${cur ? "いま" : "つぎ"}：${esc(slotSummary(s) || s.title)}（${s.time}〜）</span><i class="ph ph-caret-right"></i></a>`;
       }
     } else {
-      count = `<small>旅の思い出</small><span class="dc-num"><b>4</b><span>日間</span></span>`;
       alert = `<a class="ds-alert now" href="#/tools/quiz"><i class="ph ph-question"></i><span>上海クイズで、4日間をふりかえる</span><i class="ph ph-caret-right"></i></a>`;
     }
 
@@ -366,13 +362,7 @@
       title: "ホーム",
       actions: `<a class="hb sos" href="#/tools/emergency" aria-label="緊急連絡先">SOS</a><button class="hb" data-act="share" aria-label="共有"><i class="ph ph-share-network"></i></button><a class="hb" href="#/tools/settings" aria-label="設定"><i class="ph ph-gear"></i></a>`,
       html: `<div class="dash">
-        <section class="ds">
-          <div class="ds-top">
-            <div class="ds-left"><div class="ds-meta"><span class="ds-badge">${esc(TRIP.badge)}</span><span class="ds-date">2026.12.9 - 12.12</span></div><h2>${esc(TRIP.headline)}</h2></div>
-            <div class="ds-count">${count}</div>
-          </div>
-          ${alert}
-        </section>
+        ${alert}
         <div class="db">
           <a class="db-btn taxi" href="#/tools/taxi"><span class="db-top"><span class="db-ic"><i class="ph ph-taxi"></i></span><span class="db-chip">指差し提示</span></span><span class="db-label"><b>タクシーに見せる</b><small>打車指南・目的地カード</small></span></a>
           <a class="db-btn shop" href="#/tools/phrase"><span class="db-top"><span class="db-ic"><i class="ph ph-receipt"></i></span><span class="db-chip">注文・会計</span></span><span class="db-label"><b>お店で見せる</b><small>点餐・買単フレーズ</small></span></a>
