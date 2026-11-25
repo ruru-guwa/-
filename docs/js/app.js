@@ -585,7 +585,7 @@
        つぎにやること → 行き・帰りのタクシー → 日付と時間 → 9つのマス → 攻略ガイド・解説 */
     const sh = shParts(now());
     const tGo = TAXI.find((t) => t.id === "disney"), tBack = TAXI.find((t) => t.id === "hotel");
-    const taxiData = (t) => `data-act="show-taxi" data-zh="${esc(t.zh)}" data-addr="${esc(t.addr)}" data-ja="${esc(t.ja)}"`;
+    const taxiData = taxiAttrs;
     const prep = dPrep(), left = prep.filter((x) => !state.checks[x.k]);
     const groups = dGroups();
     const di = PLAN.findIndex((d) => d.date === D.date), pd = PLAN[di];
@@ -1213,9 +1213,9 @@
   const TOOLS = {
     taxi: () => ({
       title: "タクシーに見せる",
-      html: `<p class="muted">タップすると全画面で大きく表示されます。運転手さんに画面を見せてください。</p>
-      ${TAXI.map((t) => `<button class="list-btn" data-act="show-taxi" data-zh="${esc(t.zh)}" data-addr="${esc(t.addr)}" data-ja="${esc(t.ja)}"><div><div class="zh">${esc(t.zh)}</div><div class="ja">${esc(t.ja)}</div></div></button>`).join("")}
-      <div class="card muted" style="font-size:.85rem">タクシーはDiDi（滴滴）アプリで呼ぶのが便利。4人＋荷物のときは大きめの車を選びます。</div>`,
+      html: `<p class="muted">タップすると全画面で、運転手さんへの「こんにちは。DiDiで呼んだ車です。〇〇までお願いします。ありがとうございます」と行き先・住所が中国語で大きく出ます。その場で乗ったタクシーのときは、画面の下で切りかえます。</p>
+      ${TAXI.map((t) => `<button class="list-btn" ${taxiAttrs(t)}><div><div class="zh">${esc(t.zh)}</div><div class="ja">${esc(t.ja)}</div></div></button>`).join("")}
+      <div class="card muted" style="font-size:.85rem">タクシーはDiDi（滴滴）アプリで前もって呼ぶ前提。4人＋荷物のときは大きめの車を選びます。</div>`,
     }),
     phrase: (cat) => { // 種類ごとのタブで切りかえる（食事・タクシー・困った…）
       const cats = [...new Set(PHRASES.map((p) => p.cat))];
@@ -1310,6 +1310,36 @@
   }
 
   /* ---------------- 全画面表示 ---------------- */
+  /* タクシーに見せる：あいさつ・お願い・お礼のある文にする（行き先だけは失礼。2026/11/26 りゅうさんの希望）。
+     ふだんは「DiDiで前もって呼んだ車」の前提。下の切りかえで、その場で乗ったタクシー用（DiDiの1行なし）にもできる */
+  const taxiAttrs = (t) => `data-act="show-taxi" data-zh="${esc(t.zh)}" data-addr="${esc(t.addr || "")}" data-ja="${esc(t.ja)}"${t.note ? ` data-note="${esc(t.note)}"` : ""}`;
+  function showTaxi({ zh, addr, ja, note }) {
+    const el = document.createElement("div");
+    el.className = "show taxi-show";
+    const draw = (didi) => {
+      el.innerHTML = `<button class="iconbtn close" aria-label="閉じる">${IC.close}</button>
+      <div class="ts-wrap">
+        <div class="ts-zh" lang="zh-CN">
+          <p class="ts-line">师傅，您好！</p>
+          ${didi ? `<p class="ts-line">我们是在滴滴上叫的车。</p>` : ""}
+          <p class="ts-line">麻烦您送我们到：</p>
+          <div class="zh">${esc(zh)}</div>${addr ? `<div class="addr">${esc(addr)}</div>` : ""}
+          <p class="ts-line ts-thanks">谢谢您！</p>
+        </div>
+        <div class="ja">運転手さん、こんにちは。${didi ? "DiDiで呼んだ車です。" : ""}「${esc(ja)}」までお願いします。ありがとうございます。</div>
+        ${note ? `<div class="ts-note"><i class="ph ph-info"></i>${esc(note)}</div>` : ""}
+        <div class="seg ts-mode" role="group" aria-label="車の呼び方"><button class="${didi ? "on" : ""}" data-m="1" aria-pressed="${didi}">DiDiで呼んだ車</button><button class="${didi ? "" : "on"}" data-m="0" aria-pressed="${!didi}">その場で乗った車</button></div>
+        <div class="ts-hint">画面をタップすると閉じます</div>
+      </div>`;
+    };
+    draw(true);
+    el.addEventListener("click", (e) => {
+      const m = e.target.closest("[data-m]");
+      if (m) { draw(m.dataset.m === "1"); return; }
+      el.remove();
+    });
+    document.body.appendChild(el);
+  }
   function showBig({ zh, addr, ja, py }) {
     const el = document.createElement("div");
     el.className = "show";
@@ -1337,7 +1367,8 @@
     else if (a === "acc") { const box = el.closest(".acc"); box.classList.toggle("open"); el.setAttribute("aria-expanded", box.classList.contains("open")); }
     else if (a === "fold") { const f = el.closest(".fold"); f.classList.toggle("closed"); el.textContent = f.classList.contains("closed") ? "もっと読む ▾" : "閉じる ▴"; }
     else if (a === "jump") { e.preventDefault(); const t = document.getElementById(el.dataset.to); if (t) window.scrollTo({ top: t.getBoundingClientRect().top + scrollY - 70, behavior: "smooth" }); }
-    else if (a === "show-taxi" || a === "show-phrase") { showBig(el.dataset); }
+    else if (a === "show-taxi") { showTaxi(el.dataset); }
+    else if (a === "show-phrase") { showBig(el.dataset); }
     else if (a === "rate-q") { const v = +el.dataset.v; $("#cny").value = v; $("#jpy").value = Math.round(v * state.rate); }
     else if (a === "pin") { showPin(el.dataset.id); }
     else if (a === "random") { randomFind(); }

@@ -1305,3 +1305,21 @@ button.db-btn { width: 100%; border: 0; text-align: left; cursor: pointer; }
 .tl-person .avatar + .avatar { margin-left: -4px; box-shadow: 0 0 0 2px #fff; }
 .tl-i.now .tl-time { color: var(--pri); }
 .tl-i.now .tl-body b::after { content: "いま"; margin-left: 6px; padding: 0 6px; border-radius: 3px; background: var(--pri); color: #fff; font-size: .66rem; vertical-align: 2px; }
+
+/* ---------------- タクシーに見せる：あいさつ・お願い・お礼のある文（2026/11/26） ----------------
+   中国語は運転手さんが読めるよう大きく。日本語の訳と切りかえは小さく下に。長いときは縦にスクロール */
+.show.taxi-show { justify-content: flex-start; overflow-y: auto; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+.ts-wrap { margin: auto 0; width: 100%; max-width: 640px; display: flex; flex-direction: column; align-items: center; }
+.ts-zh { font-family: "PingFang SC", "Hiragino Sans GB", sans-serif; color: #000; }
+.ts-line { margin: 0 0 6px; font-size: clamp(1.25rem, 5.6vw, 2rem); font-weight: 700; line-height: 1.45; }
+.taxi-show .zh { margin-top: 6px; }
+.taxi-show .addr { margin-top: 8px; }
+.ts-thanks { margin: 14px 0 0; }
+.taxi-show .ja { margin-top: 20px; max-width: 30em; line-height: 1.6; }
+.ts-note { display: flex; gap: 6px; align-items: flex-start; margin-top: 10px; max-width: 30em; padding: 8px 12px; border-radius: 10px; background: var(--surf-low); color: var(--sub2); font-size: .82rem; line-height: 1.55; text-align: left; }
+.ts-note .ph { flex: 0 0 auto; margin-top: 2px; color: var(--pri); }
+.ts-mode { margin: 18px 0 0; }
+.ts-mode button { min-height: 40px; }
+.ts-hint { margin-top: 14px; color: var(--faint); font-size: .8rem; }
+/* 行き先は空白・括弧の所で折り返す（「2 / 号航站楼」のように切れないように）。入りきらないときだけ途中で折る */
+.taxi-show .zh, .taxi-show .addr { word-break: keep-all; overflow-wrap: anywhere; }
