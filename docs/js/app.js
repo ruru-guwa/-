@@ -32,6 +32,11 @@
 
   /* チェックリストの項目は、順番ではなく文章で覚える（項目を足してもチェックがずれない） */
   const ckey = (list, text) => { let h = 5381; for (const ch of text) h = ((h * 33) ^ ch.codePointAt(0)) >>> 0; return `${list}#${h.toString(36)}`; };
+  // 文章を直した項目は、前の文章でつけたチェックを引きつぐ [リスト, 前の文章, 今の文章]
+  [["disney", "【前日まで】このページの「乗りたい」を4人で決める", "【前日まで】乗り物の「乗りたい」を4人で決める"]].forEach(([l, a, b]) => {
+    const o = ckey(l, a), n = ckey(l, b);
+    if (state.checks[o] && !state.checks[n]) { state.checks[n] = state.checks[o]; save("checks"); }
+  });
 
   /* ---------------- 小道具 ---------------- */
   const $ = (s, el = document) => el.querySelector(s);
@@ -526,15 +531,17 @@
   /* ---------------- ディズニー（タブ）：メニュー → それぞれのページ ---------------- */
   const LV = { 1: { label: "おだやか", cls: "lv1" }, 2: { label: "ほどよい", cls: "lv2" }, 3: { label: "スリル", cls: "lv3" } };
   const D_TAG = { "冬だけ": "t-winter", "冬の人気": "t-winter", "クリスマス": "t-xmas", "10周年": "t-10", "上海生まれ": "t-10", "上海ならでは": "t-10", "今年の新作": "t-new", "冬の新メニュー": "t-new" };
+  // 並び順＝入口の3×3のマスの順＝「まえ・つぎ」の順（行く前 → 当日 → 知って楽しむ）。short はマスの名前
   const D_MENU = [
-    { id: "prep", icon: "check-square", title: "ディズニーの準備", color: "jade" },
-    { id: "rides", icon: "rocket-launch", title: "乗り物", color: "rose" },
-    { id: "want", icon: "users-three", title: "みんなの乗りたい", color: "rose" },
-    { id: "shows", icon: "sparkle", title: "ショー・冬の演出", color: "teal" },
-    { id: "plan", icon: "clock", title: "1日の流れ・帰り方", color: "navy" },
-    { id: "food", icon: "fork-knife", title: "食べたいもの", color: "jade" },
-    { id: "goods", icon: "gift", title: "グッズ", color: "gold" },
-    { id: "only", icon: "star-four", title: "上海だけ・十二支", color: "red" },
+    { id: "prep", icon: "list-checks", title: "ディズニーの準備", short: "行く前の準備", c: "gray" },
+    { id: "rides", icon: "rocket-launch", title: "乗り物", short: "乗り物", c: "pri" },
+    { id: "want", icon: "users-three", title: "みんなの乗りたい", short: "乗りたい", c: "pink" },
+    { id: "plan", icon: "clock", title: "1日の流れ・帰り方", short: "1日の流れ", c: "green" },
+    { id: "shows", icon: "sparkle", title: "ショー・冬の演出", short: "ショー", c: "peach" },
+    { id: "food", icon: "fork-knife", title: "食べたいもの", short: "食べ物", c: "red" },
+    { id: "goods", icon: "gift", title: "グッズ", short: "グッズ", c: "pink" },
+    { id: "only", icon: "star-four", title: "上海だけ・十二支", short: "上海だけ", c: "peach" },
+    { id: "season", icon: "snowflake", title: "冬のイベント・10周年", short: "冬のイベント", c: "green" },
   ];
   let dFilter = "all";
   // 準備：「準備・持ち物」のディズニーの項目（チェックは共通）＋ディズニーだけの項目
@@ -574,40 +581,41 @@
     if (sub === "ride") return disneyRide(args[1]);
     if (sub && D_MENU.some((m) => m.id === sub)) return disneySub(sub, q);
 
-    const n = now(), sh = shParts(n);
-    const days = Math.ceil((new Date(D.date + "T00:00:00+08:00") - n) / 86400000);
-    const count = sh.date === D.date ? `<div class="count"><b>今日</b><span>はディズニーの日</span></div>`
-      : days > 0 ? `<div class="count"><span>ディズニーまで あと</span><b>${days}</b><span>日</span></div>`
-      : `<div class="count"><span>楽しかった1日を、思い出に</span></div>`;
+    /* 入口はホームと同じ「スクロールなしの1画面」（2026/11/26「ごちゃごちゃして見にくい」）。上から
+       つぎにやること → 行き・帰りのタクシー → 日付と時間 → 9つのマス → 攻略ガイド・解説 */
+    const sh = shParts(now());
     const tGo = TAXI.find((t) => t.id === "disney"), tBack = TAXI.find((t) => t.id === "hotel");
-    const prep = dPrep(), prepDone = prep.filter((x) => state.checks[x.k]).length;
+    const taxiData = (t) => `data-act="show-taxi" data-zh="${esc(t.zh)}" data-addr="${esc(t.addr)}" data-ja="${esc(t.ja)}"`;
+    const prep = dPrep(), left = prep.filter((x) => !state.checks[x.k]);
     const groups = dGroups();
-    const meta = { prep: `${prepDone}/${prep.length} 済み`, rides: `${D.rides.length}件・強さで選べる`, want: groups.length ? `${groups.length}組に分かれた` : "まだ選んでいない", shows: `${D.shows.length}件・冬だけのものも`, plan: "時間ごとの例", food: `${D.food.length}品・冬の新作`, goods: `${D.goods.length}件・上海生まれ`, only: "世界初・十二支の庭" };
+    const di = PLAN.findIndex((d) => d.date === D.date), pd = PLAN[di];
+
+    // つぎにやること（行く前：ディズニーの準備 → 乗りたいを選ぶ／当日：いまの流れ／終わったら：思い出）
+    const bar = (cls, href, icon, text) => `<a class="ds-alert ${cls}" href="${href}"><i class="ph ph-${icon}"></i><span>${esc(text)}</span><i class="ph ph-caret-right"></i></a>`;
+    let alert;
+    if (sh.date === D.date) {
+      const cur = [...D.plan].reverse().find((p) => /^\d+:\d+$/.test(p.time) && toMin(p.time) <= sh.min);
+      alert = bar("now", "#/disney/plan", "clock", cur ? `いま：${cur.title}（${cur.time}〜）` : "今日はディズニーの日。1日の流れを見る");
+    } else if (sh.date > D.date) alert = bar("now", "#/disney/only", "heart", "楽しかった1日を、思い出に");
+    else if (left.length) alert = bar("", "#/disney/prep", "warning-circle", `未完了：${stripTag(left[0].t)}`);
+    else if (!groups.length) alert = bar("", "#/disney/rides", "users-three", "つぎ：乗りたい乗り物を4人で選ぶ");
+    else alert = bar("ok", "#/disney/plan", "check-circle", "準備はできました。当日の流れを見ておく");
+
+    const meta = { prep: left.length ? `${prep.length - left.length}/${prep.length} 済み` : "全部できた", rides: `${D.rides.length}件・強さ別`, want: groups.length ? `${groups.length}組に分かれた` : "まだ選んでいない", plan: "帰り方も", shows: `${D.shows.length}件・冬だけも`, food: `${D.food.length}品・冬の新作`, goods: `${D.goods.length}件・上海生まれ`, only: "十二支の庭", season: "クリスマスも" };
+    const tiles = D_MENU.map((m) => `<a class="dt-tile" href="#/disney/${m.id}">${m.id === "prep" && left.length ? `<span class="dt-badge">未完${left.length}</span>` : isRead(`d:${m.id}`) ? `<i class="ph ph-check dt-read" aria-label="見た"></i>` : ""}<span class="dt-ic c2-${m.c}"><i class="ph ph-${m.icon}"></i></span><b>${m.short}</b><small>${esc(meta[m.id])}</small></a>`).join("");
 
     return {
       title: "ディズニー",
-      html: `
-      ${pageHead({ color: "rose", icon: "castle-turret", kicker: "12/11（金）", title: "上海ディズニーランド", extra: `${count}<div class="dz-hours"><i class="ph ph-clock"></i><span>${esc(D.hours)}</span></div>` })}
-      <div class="quick">
-        <button data-act="show-taxi" data-zh="${esc(tGo.zh)}" data-addr="${esc(tGo.addr)}" data-ja="${esc(tGo.ja)}"><span class="ic"><i class="ph ph-taxi"></i></span>行きの<br>タクシー</button>
-        <button data-act="show-taxi" data-zh="${esc(tBack.zh)}" data-addr="${esc(tBack.addr)}" data-ja="${esc(tBack.ja)}"><span class="ic"><i class="ph ph-car-profile"></i></span>帰りの<br>タクシー</button>
-        <a href="#/tools/phrase"><span class="ic"><i class="ph ph-bowl-food"></i></span>お店で<br>見せる</a>
-        <a href="#/article/disneyguide"><span class="ic"><i class="ph ph-book-open-text"></i></span>攻略<br>ガイド</a>
-      </div>
-
-      <div class="label-s">いまの上海ディズニー</div>
-      <div class="hscroll dz-season">${D.season.map((s) => `<div class="dz-s c-${s.color}"><span class="ic"><i class="ph ph-${s.icon}"></i></span><div><small>${esc(s.h)}</small><b>${esc(s.b)}</b><p>${esc(s.t)}</p></div></div>`).join("")}</div>
-
-      <div class="section-title">メニュー <small>見たいところをタップ</small></div>
-      ${tilesHtml(D_MENU.map((m) => ({ href: `#/disney/${m.id}`, icon: m.icon, label: m.title, sub: meta[m.id], color: m.color, read: isRead(`d:${m.id}`) })), "two")}
-
-      <div class="section-title">もっと詳しく</div>
-      <div class="card related">
-        <a href="#/spot/disney">上海ディズニーの解説（歴史・東京との違い・クイズ）</a>
-        <a href="#/article/disneyguide">上海ディズニー攻略ガイド（チケット・アプリ・お金で時間を買う方法）</a>
-        <a href="#/plan/2">12/11の予定（行き方・帰り方）</a>
-      </div>
-      <p class="foot-note">2026年11月下旬の調べ（公式の発表・報道・旅行サイトや攻略記事より）。当日の営業時間・ショーの時刻・休止は、公式アプリで確認してください。</p>`,
+      html: `<div class="dash">
+        ${alert}
+        <div class="db">
+          <button class="db-btn taxi" ${taxiData(tGo)}><span class="db-top"><span class="db-ic"><i class="ph ph-taxi"></i></span><span class="db-chip">朝</span></span><span class="db-label"><b>行きのタクシー</b><small>ホテル → ディズニー</small></span></button>
+          <button class="db-btn shop" ${taxiData(tBack)}><span class="db-top"><span class="db-ic"><i class="ph ph-car-profile"></i></span><span class="db-chip">夜</span></span><span class="db-label"><b>帰りのタクシー</b><small>ディズニー → ホテル</small></span></button>
+        </div>
+        <div class="dz-info"><span class="dz-info-ic"><i class="ph ph-castle-turret"></i></span><span class="dz-info-t"><b>上海ディズニーランド</b><small><span class="dz-date">${pd ? `${pd.label}（${pd.dow}）` : ""}</span>${esc(D.hoursShort)}</small></span>${pd ? `<a class="dz-info-go" href="#/plan/${di}">予定<i class="ph ph-caret-right"></i></a>` : ""}</div>
+        <div class="dt">${tiles}</div>
+        <div class="dz-more"><a href="#/article/disneyguide"><i class="ph ph-book-open-text"></i>攻略ガイド</a><a href="#/spot/disney"><i class="ph ph-castle-turret"></i>ディズニーの解説</a></div>
+      </div>`,
     };
   };
 
@@ -643,8 +651,12 @@
         `<p>${esc(s.text)}</p>${s.place ? `<div class="dz-when"><i class="ph ph-map-pin"></i><span>${esc(s.place)}</span></div>` : ""}${s.tip ? `<div class="dz-tip">${esc(s.tip)}</div>` : ""}`, o === s.id)).join("")}</div>
         <p class="tiny">タップすると説明が開きます。上演の時刻と休止は日によって変わるので、当日の朝に公式アプリで確認してください。</p>`;
     } else if (sub === "plan") {
-      const planHtml = D.plan.map((p) => `<div class="ag k-${p.kind}"><i class="ph ph-${p.icon || KINDS[p.kind].icon} ag-ic"></i><div class="ag-body"><span class="ag-time">${esc(p.time)}</span><b>${esc(p.title)}</b>${p.text ? `<span class="ag-note">${esc(p.text)}</span>` : ""}${(p.split || []).map(([a, b, t]) => `<div class="ag-person">${avatar(a)}${avatar(b)}<span>${esc(t)}</span></div>`).join("")}</div></div>`).join("");
-      body = `<div class="agenda">${planHtml}</div>
+      // 時刻＋線でつながった点の時間割（濃い色のブロックは並べない）。当日は「いま」の行に印
+      const sh = shParts(now());
+      const cur = sh.date === D.date ? [...D.plan].reverse().find((p) => /^\d+:\d+$/.test(p.time) && toMin(p.time) <= sh.min) : null;
+      const planHtml = D.plan.map((p) => `<li class="tl-i k-${p.kind}${p === cur ? " now" : ""}"><span class="tl-time">${esc(p.time)}</span><span class="tl-dot"><i class="ph ph-${p.icon || KINDS[p.kind].icon}"></i></span><div class="tl-body"><b>${esc(p.title)}</b>${p.text ? `<span class="tl-note">${esc(p.text)}</span>` : ""}${(p.split || []).map(([a, b, t]) => `<div class="tl-person">${avatar(a)}${avatar(b)}<span>${esc(t)}</span></div>`).join("")}</div></li>`).join("");
+      body = `<div class="dz-hours-note"><i class="ph ph-clock"></i><span>${esc(D.hours)}</span></div>
+        <ol class="tl">${planHtml}</ol>
         <a class="cta alt dz-cta" href="#/plan/2"><i class="ph ph-calendar-dots"></i><span><b>12/11の予定</b><br>行き方（タクシー・地下鉄）と帰り方を選ぶ</span><i class="ph ph-caret-right"></i></a>
         <div class="label-s">帰り方</div>${dTips(D.back)}`;
     } else if (sub === "food") {
@@ -656,6 +668,10 @@
         <div class="label-s">十二支の庭の、干支のキャラクター</div>
         <div class="zodiac">${D.zodiac.map(([k, y, c, f]) => `<div class="zd ${k === "午" ? "now" : ""}"><b>${k}<small>${y}</small></b><span>${esc(c)}</span>${f ? `<small>${esc(f)}</small>` : ""}</div>`).join("")}</div>
         <p class="tiny">ガーデン・オブ・イマジネーションにある、十二支をディズニーのキャラクターで表したモザイクの壁。中国の「亥」はイノシシではなくブタ。色のついた枠は今年（2026年・午年）のマキシマス。4人それぞれの生まれ年のキャラクターも見つかる。</p>`;
+    } else if (sub === "season") {
+      const tag = (h) => (h === "クリスマス" ? "t-xmas" : /10周年/.test(h) ? "t-10" : "t-winter");
+      body = `<div class="card dz-list">${D.season.map((s) => `<div class="dz-item"><div class="dz-item-top"><span class="dz-tag ${tag(s.h)}">${esc(s.h)}</span></div><h4>${esc(s.b)}</h4><p>${esc(s.t)}</p></div>`).join("")}</div>
+        <p class="foot-note">2026年11月下旬の調べ（公式の発表・報道・旅行サイトや攻略記事より）。当日の営業時間・ショーの時刻・休止は、公式アプリで確認してください。</p>`;
     }
     return { title: "ディズニー", html: `${crumb("#/disney", "ディズニー", `${i + 1} / ${D_MENU.length}`)}<h2 class="sub-h">${esc(m.title)}</h2>${body}${nav}` };
   }

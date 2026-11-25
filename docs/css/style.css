@@ -1271,3 +1271,37 @@ main:has(> .dash) {
   .dt-tile { min-height: 64px; padding: 4px; }
   .dt-ic { width: 26px; height: 26px; margin-bottom: 1px; font-size: 16px; }
 }
+
+/* ---------------- ディズニーの入口：ホームと同じ1画面の作り（2026/11/26） ----------------
+   つぎにやること → 行き・帰りのタクシー（大きなボタン） → 日付と時間 → 9つのマス → 攻略ガイド・解説 */
+button.db-btn { width: 100%; border: 0; text-align: left; cursor: pointer; }
+.dz-info { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 8px 6px 10px; border-radius: 12px; background: #fff; box-shadow: var(--lift); }
+.dz-info-ic { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--pri); color: #fff; font-size: 20px; }
+.dz-info-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+.dz-info-t b { font-size: .95rem; }
+.dz-info-t small { font-size: .74rem; color: var(--sub2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dz-date { font-family: var(--num); font-weight: 700; color: var(--pri); margin-right: 8px; }
+.dz-info-go { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; min-height: 44px; padding: 0 12px; border-radius: 999px; background: var(--pri-soft); color: var(--pri-ink); font-size: .78rem; font-weight: 800; }
+.dt-read { position: absolute; top: 6px; right: 8px; color: var(--jade); font-size: 15px; }
+.dz-more { display: grid; grid-template-columns: 1fr 1fr; border-radius: 12px; background: #fff; box-shadow: var(--lift); overflow: hidden; }
+.dz-more a { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; color: var(--ink); font-size: .84rem; font-weight: 700; }
+.dz-more a + a { border-left: 1px solid var(--line); }
+.dz-more .ph { color: var(--pri); font-size: 18px; }
+.dz-hours-note { display: flex; gap: 6px; align-items: flex-start; margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--surf-low); color: var(--sub2); font-size: .84rem; line-height: 1.6; }
+.dz-hours-note .ph { flex: 0 0 auto; margin-top: 3px; color: var(--pri); font-size: 16px; }
+/* ディズニーの1日の流れ：時刻＋線でつながった点（濃い色のブロックを並べない） */
+.tl { list-style: none; margin: 0 0 12px; padding: 6px 12px; border-radius: 12px; background: #fff; box-shadow: var(--lift); }
+.tl-i { position: relative; display: grid; grid-template-columns: 46px 30px minmax(0, 1fr); column-gap: 10px; align-items: start; margin: 0; padding: 9px 0; }
+.tl-i::before { content: ""; position: absolute; left: 70px; top: 0; bottom: 0; width: 2px; background: var(--surf-high); }
+.tl-i:first-child::before { top: 24px; }
+.tl-i:last-child::before { bottom: auto; height: 24px; }
+.tl-time { padding-top: 5px; text-align: right; font-family: var(--num); font-size: .84rem; font-weight: 700; color: var(--sub2); white-space: nowrap; }
+.tl-dot { position: relative; z-index: 1; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--k); color: #fff; font-size: 16px; box-shadow: 0 0 0 3px #fff; }
+.tl-body { min-width: 0; padding-top: 3px; }
+.tl-body b { display: block; font-size: .95rem; line-height: 1.45; }
+.tl-note { display: block; margin-top: 2px; font-size: .82rem; line-height: 1.6; color: var(--sub2); }
+.tl-person { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: .84rem; line-height: 1.5; }
+.tl-person .avatar { flex: 0 0 auto; width: 22px; height: 22px; font-size: .7rem; }
+.tl-person .avatar + .avatar { margin-left: -4px; box-shadow: 0 0 0 2px #fff; }
+.tl-i.now .tl-time { color: var(--pri); }
+.tl-i.now .tl-body b::after { content: "いま"; margin-left: 6px; padding: 0 6px; border-radius: 3px; background: var(--pri); color: #fff; font-size: .66rem; vertical-align: 2px; }
