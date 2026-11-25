@@ -137,6 +137,32 @@
     return "home";
   }
 
+  /* 値段：「〇〇元」のすぐ後ろに、だいたいの日本円を（約〇〇円）で足す（2026/11/26 りゅうさんの希望「全部()で」）。
+     データはそのままで、画面に出す文字だけを書きかえる。レートは「為替の計算」で決めた値（state.rate）。
+     「1元 ≈ 21.5円」のようなレートの説明・「25元＝…」・すでに（約〜円）があるもの・data-noyen の中（為替の計算）は足さない。
+     「380・480・580・880元」は 380〜880元 として、「3〜5元」は範囲で、「2万元」は2万として計算する */
+  const YUAN_RE = /(\d[\d,]*(?:\.\d+)?)((?:・\d[\d,]*(?:\.\d+)?)*)(?:\s*(?:[〜～~\-－–]|から)\s*(\d[\d,]*(?:\.\d+)?))?\s*(万)?元(?![旦朝代年号素宵])(?![\s　]*(?:[≈≒＝=]|[（(]約))/g;
+  const yenText = (y) => (y <= 0 ? "0" : y >= 100000 ? `${Math.round(y / 10000).toLocaleString("ja-JP")}万` : (y < 1000 ? Math.max(10, Math.round(y / 10) * 10) : Math.round(y / 100) * 100).toLocaleString("ja-JP"));
+  function addYen(root) {
+    if (!root) return;
+    const rate = +state.rate > 0 ? +state.rate : TRIP.defaultRate;
+    const num = (s) => parseFloat(String(s).replace(/,/g, ""));
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => (!/\d\s*万?元/.test(n.nodeValue) || n.parentElement.closest("[data-noyen], svg, script, style, textarea") ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT),
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((n) => {
+      n.nodeValue = n.nodeValue.replace(YUAN_RE, (m, a, list, b, man) => {
+        const k = man ? 10000 : 1;
+        const vals = [a, ...(list ? list.split("・").filter(Boolean) : []), ...(b ? [b] : [])].map((v) => num(v) * k * rate);
+        const lo = Math.min(...vals), hi = Math.max(...vals);
+        const loT = yenText(lo), hiT = yenText(hi);
+        return `${m}（約${loT}${hiT !== loT ? `〜${hiT}` : ""}円）`;
+      });
+    });
+  }
+
   const PAGES = {};
   function render() {
     const { parts, q } = parse();
@@ -157,6 +183,7 @@
       <nav class="tabbar">${TABS.map((t) => `<a href="${t.href}" class="${tabOf(parts) === t.id ? "active" : ""}">${IC[t.id]}<span>${t.label}</span></a>`).join("")}</nav>`;
 
     if (favKey) pushHistory(favKey, out.title);
+    addYen($("#app main"));
     if (out.after) out.after();
     if (!parse().q.get("keep")) window.scrollTo(0, 0);
   }
@@ -1168,7 +1195,7 @@
   function showPin(id) {
     if (id && id.startsWith("f:")) {
       const f = FINDS.find((x) => x.id === id.slice(2)); const box = $("#mapcard"); if (!f || !box) return;
-      box.innerHTML = `<div class="card list-card map-card">${findRow(f)}</div>`; return;
+      box.innerHTML = `<div class="card list-card map-card">${findRow(f)}</div>`; addYen(box); return;
     }
     const p = PLACES.find((x) => x.id === id); const box = $("#mapcard"); if (!p || !box) return;
     const s = p.spot && SPOTS[p.spot];
@@ -1229,7 +1256,7 @@
     },
     rate: () => ({
       title: "為替の計算",
-      html: `<div class="card rate-box">
+      html: `<div data-noyen><div class="card rate-box">
         <label>人民元（元）</label><input id="cny" type="number" inputmode="decimal" value="100">
         <label>日本円（円）</label><input id="jpy" type="number" inputmode="decimal" value="${Math.round(100 * state.rate)}">
         <div class="rate-quick">${[10, 30, 50, 100, 200, 500].map((v) => `<button class="chip" data-act="rate-q" data-v="${v}">${v}元</button>`).join("")}</div>
@@ -1237,7 +1264,7 @@
       <div class="card"><label class="muted">レート（1元あたりの円）</label>
         <div style="display:flex;gap:8px;align-items:center;margin-top:6px"><input id="rate" type="number" step="0.1" inputmode="decimal" value="${state.rate}" style="flex:1;font-size:1.2rem;padding:8px 12px;border:1px solid var(--line);border-radius:10px"><span>円</span></div>
         <div class="tiny" style="margin-top:6px">目安の値です。両替やカードの明細を見て、自分で直せます。</div></div>
-      <div class="card"><table class="rate-table">${[1, 5, 10, 20, 50, 100, 200, 500, 1000].map((v) => `<tr><td>${v} 元</td><td>約 ${Math.round(v * state.rate).toLocaleString()} 円</td></tr>`).join("")}</table></div>`,
+      <div class="card"><table class="rate-table">${[1, 5, 10, 20, 50, 100, 200, 500, 1000].map((v) => `<tr><td>${v} 元</td><td>約 ${Math.round(v * state.rate).toLocaleString()} 円</td></tr>`).join("")}</table></div></div>`,
       after() {
         const c = $("#cny"), j = $("#jpy"), r = $("#rate");
         c.addEventListener("input", () => { j.value = Math.round(+c.value * state.rate); });
