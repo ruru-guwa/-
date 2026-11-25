@@ -1213,7 +1213,7 @@
   const TOOLS = {
     taxi: () => ({
       title: "タクシーに見せる",
-      html: `<p class="muted">タップすると全画面で、運転手さんへの「こんにちは。DiDiで呼んだ車です。〇〇までお願いします。ありがとうございます」と行き先・住所が中国語で大きく出ます。その場で乗ったタクシーのときは、画面の下で切りかえます。</p>
+      html: `<p class="muted">タップすると全画面で、運転手さんへの「こんにちは。DiDiで呼んだ車です。〇〇までお願いします。ありがとうございます」と行き先・住所が中国語で大きく出ます。その場で乗ったタクシーのときは、画面の下で切りかえます。「中国語で読み上げる」を押すと、同じ文を声でも伝えられます。</p>
       ${TAXI.map((t) => `<button class="list-btn" ${taxiAttrs(t)}><div><div class="zh">${esc(t.zh)}</div><div class="ja">${esc(t.ja)}</div></div></button>`).join("")}
       <div class="card muted" style="font-size:.85rem">タクシーはDiDi（滴滴）アプリで前もって呼ぶ前提。4人＋荷物のときは大きめの車を選びます。</div>`,
     }),
@@ -1223,7 +1223,7 @@
       return {
         title: "お店で見せる",
         html: `<div class="seg seg-full">${cats.map((c) => `<a class="${c === cur ? "on" : ""}" href="#/tools/phrase/${encodeURIComponent(c)}?keep=1">${c}<small>${PHRASES.filter((p) => p.cat === c).length}</small></a>`).join("")}</div>
-        <p class="muted" style="margin:0 2px 10px">タップすると全画面で大きく表示されます。お店の人に画面を見せてください。</p>
+        <p class="muted" style="margin:0 2px 10px">タップすると全画面で大きく表示されます。お店の人に画面を見せてください。「中国語で読み上げる」で声でも伝えられます。</p>
         ${PHRASES.filter((p) => p.cat === cur).map((p) => `<button class="list-btn" data-act="show-phrase" data-zh="${esc(p.zh)}" data-py="${esc(p.py)}" data-ja="${esc(p.ja)}"><div><div class="zh">${esc(p.zh)}</div><div class="ja">${esc(p.ja)}・${esc(p.py)}</div></div></button>`).join("")}`,
       };
     },
@@ -1313,11 +1313,68 @@
   /* タクシーに見せる：あいさつ・お願い・お礼のある文にする（行き先だけは失礼。2026/11/26 りゅうさんの希望）。
      ふだんは「DiDiで前もって呼んだ車」の前提。下の切りかえで、その場で乗ったタクシー用（DiDiの1行なし）にもできる */
   const taxiAttrs = (t) => `data-act="show-taxi" data-zh="${esc(t.zh)}" data-addr="${esc(t.addr || "")}" data-ja="${esc(t.ja)}"${t.note ? ` data-note="${esc(t.note)}"` : ""}`;
-  function showTaxi({ zh, addr, ja, note }) {
+
+  /* 読み上げ（中国語の機械音声。2026/11/26 りゅうさんの希望）
+     スマホに入っている声で読む（ブラウザの Web Speech API）。外のサービスは使わない。iPhone は中国語の声が最初から入っている */
+  const canSpeak = typeof window.speechSynthesis !== "undefined" && typeof window.SpeechSynthesisUtterance !== "undefined";
+  if (canSpeak) speechSynthesis.getVoices(); // 声の一覧を先に読み込ませる（Chrome は後から届く）
+  // 普通話（中国本土）の声。iPhone・Mac の「Grandma」「Grandpa」などの遊び用の声は避け、Tingting などのふつうの声を選ぶ
+  const ZH_GOOD = /Tingting|Ting-Ting|Li-?Mu|Yu-?shu|Lili|Lilian|普通话|普通話|Mandarin/i;
+  const ZH_ODD = /Grandma|Grandpa|Rocko|Junior|Ralph|Fred|Albert|Bahh|Bells|Boing|Bubbles|Cellos|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Bad News|Good News/i;
+  const ZH_MILD = /Eddy|Flo|Reed|Sandy|Shelley/i; // ふつうに聞き取れるが、Tingting よりは後
+  const zhVoice = () => {
+    const vs = speechSynthesis.getVoices();
+    const pick = (list) => list.find((v) => ZH_GOOD.test(v.name)) || list.find((v) => !ZH_ODD.test(v.name) && !ZH_MILD.test(v.name) && v.localService)
+      || list.find((v) => !ZH_ODD.test(v.name) && !ZH_MILD.test(v.name)) || list.find((v) => !ZH_ODD.test(v.name)) || list[0];
+    const cn = vs.filter((v) => /^(zh[-_](CN|Hans)|cmn)/i.test(v.lang));
+    const tw = vs.filter((v) => /^zh[-_](TW|Hant)/i.test(v.lang)); // 台湾の普通話（広東語の香港の声は使わない）
+    return pick(cn) || pick(tw) || null;
+  };
+  // 声の一覧が届いているのに中国語の声がないとき true（届いていないときは分からないので false）
+  const noZhVoice = () => canSpeak && speechSynthesis.getVoices().length > 0 && !zhVoice();
+  let speakId = 0;
+  const stopSpeak = () => { speakId++; if (canSpeak) speechSynthesis.cancel(); };
+  // 文ごとに分けて順に読む（長い1文だと途中で止まる端末があるため）。読み終わったら onDone
+  function speakZh(text, onDone) {
+    stopSpeak();
+    const id = ++speakId, v = zhVoice();
+    const parts = String(text).match(/[^。！？!?]+[。！？!?]?/g) || [String(text)];
+    parts.forEach((p, i) => {
+      const u = new SpeechSynthesisUtterance(p.trim());
+      u.lang = "zh-CN"; if (v) u.voice = v; u.rate = 0.9;
+      if (i === parts.length - 1) u.onend = u.onerror = () => { if (id === speakId && onDone) onDone(); };
+      speechSynthesis.speak(u);
+    });
+  }
+  const sayBtn = (on) => !canSpeak ? "" : `<button class="say-btn ${on ? "on" : ""}" data-say aria-pressed="${on}"><i class="ph ph-${on ? "stop" : "speaker-high"}"></i><span>${on ? "読み上げを止める" : "中国語で読み上げる"}</span></button>
+    ${on ? `<div class="say-note">音が出ないときは、消音（マナーモード）を切って音量を上げてください</div>` : noZhVoice() ? `<div class="say-note">このスマホに中国語の声が見つかりません。設定の「テキスト読み上げ」で中国語（中国）の音声を入れると読めます</div>` : ""}`;
+  // 全画面の「読み上げ」「切りかえ」以外を押したら閉じる。閉じるときは読み上げも止める
+  function openShow(cls, draw, onClick) {
     const el = document.createElement("div");
-    el.className = "show taxi-show";
-    const draw = (didi) => {
-      el.innerHTML = `<button class="iconbtn close" aria-label="閉じる">${IC.close}</button>
+    el.className = cls;
+    const st = { speaking: false };
+    const redraw = () => { el.innerHTML = draw(st); };
+    redraw();
+    el.addEventListener("click", (e) => {
+      if (e.target.closest("[data-say]")) {
+        if (st.speaking) { stopSpeak(); st.speaking = false; redraw(); return; }
+        st.speaking = true; redraw();
+        speakZh(st.say(), () => { st.speaking = false; if (el.isConnected) redraw(); });
+        return;
+      }
+      if (onClick && onClick(e, st, () => { stopSpeak(); st.speaking = false; redraw(); })) return;
+      stopSpeak(); el.remove();
+    });
+    document.body.appendChild(el);
+  }
+
+  function showTaxi({ zh, addr, ja, note }) {
+    openShow("show taxi-show", (st) => {
+      if (st.didi == null) st.didi = true;
+      const didi = st.didi;
+      // 読み上げる文（画面の中国語と同じ。住所は行き先のあとに続ける）
+      st.say = () => `师傅，您好！${didi ? "我们是在滴滴上叫的车。" : ""}麻烦您送我们到${zh}${addr ? `，${addr}` : ""}。谢谢您！`;
+      return `<button class="iconbtn close" aria-label="閉じる">${IC.close}</button>
       <div class="ts-wrap">
         <div class="ts-zh" lang="zh-CN">
           <p class="ts-line">师傅，您好！</p>
@@ -1326,29 +1383,27 @@
           <div class="zh">${esc(zh)}</div>${addr ? `<div class="addr">${esc(addr)}</div>` : ""}
           <p class="ts-line ts-thanks">谢谢您！</p>
         </div>
+        ${sayBtn(st.speaking)}
         <div class="ja">運転手さん、こんにちは。${didi ? "DiDiで呼んだ車です。" : ""}「${esc(ja)}」までお願いします。ありがとうございます。</div>
         ${note ? `<div class="ts-note"><i class="ph ph-info"></i>${esc(note)}</div>` : ""}
         <div class="seg ts-mode" role="group" aria-label="車の呼び方"><button class="${didi ? "on" : ""}" data-m="1" aria-pressed="${didi}">DiDiで呼んだ車</button><button class="${didi ? "" : "on"}" data-m="0" aria-pressed="${!didi}">その場で乗った車</button></div>
         <div class="ts-hint">画面をタップすると閉じます</div>
       </div>`;
-    };
-    draw(true);
-    el.addEventListener("click", (e) => {
+    }, (e, st, reset) => {
       const m = e.target.closest("[data-m]");
-      if (m) { draw(m.dataset.m === "1"); return; }
-      el.remove();
+      if (!m) return false;
+      st.didi = m.dataset.m === "1"; reset();
+      return true;
     });
-    document.body.appendChild(el);
   }
   function showBig({ zh, addr, ja, py }) {
-    const el = document.createElement("div");
-    el.className = "show";
-    el.innerHTML = `<button class="iconbtn close" aria-label="閉じる">${IC.close}</button>
-      <div class="zh">${esc(zh)}</div>${addr ? `<div class="addr">${esc(addr)}</div>` : ""}
-      ${py ? `<div class="py">${esc(py)}</div>` : ""}<div class="ja">${esc(ja)}</div>
+    openShow("show", (st) => {
+      st.say = () => zh;
+      return `<button class="iconbtn close" aria-label="閉じる">${IC.close}</button>
+      <div class="zh" lang="zh-CN">${esc(zh)}</div>${addr ? `<div class="addr">${esc(addr)}</div>` : ""}
+      ${py ? `<div class="py">${esc(py)}</div>` : ""}${sayBtn(st.speaking)}<div class="ja">${esc(ja)}</div>
       <div class="hint">画面をタップすると閉じます</div>`;
-    el.addEventListener("click", () => el.remove());
-    document.body.appendChild(el);
+    });
   }
 
   /* ---------------- 操作 ---------------- */

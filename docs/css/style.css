@@ -1323,3 +1323,9 @@ button.db-btn { width: 100%; border: 0; text-align: left; cursor: pointer; }
 .ts-hint { margin-top: 14px; color: var(--faint); font-size: .8rem; }
 /* 行き先は空白・括弧の所で折り返す（「2 / 号航站楼」のように切れないように）。入りきらないときだけ途中で折る */
 .taxi-show .zh, .taxi-show .addr { word-break: keep-all; overflow-wrap: anywhere; }
+
+/* ---------------- 読み上げのボタン（タクシー・お店で見せる。2026/11/26） ---------------- */
+.say-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; margin-top: 18px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--pri); color: #fff; font: inherit; font-size: 1rem; font-weight: 800; box-shadow: var(--lift); cursor: pointer; }
+.say-btn .ph { font-size: 22px; }
+.say-btn.on { background: var(--pri-soft); color: var(--pri-ink); }
+.say-note { max-width: 26em; margin-top: 8px; color: var(--sub2); font-size: .78rem; line-height: 1.5; }
