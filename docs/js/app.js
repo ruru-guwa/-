@@ -1076,7 +1076,7 @@
       </div>
       <div class="map-legend">${Object.values(FIND_CATS).map((c) => `<span class="lg"><i style="background:${CAT_COLOR[c.color || "navy"]}"></i>${c.label}</span>`).join("")}<span class="lg"><i class="big" style="background:#b5332a"></i>解説のある場所</span></div>
       <div id="mapcard"></div>
-      <div class="tiny" style="margin-top:8px">地図は指でずらせます。＋で拡大すると、点に名前が出ます。川と道路は OpenStreetMap のデータをもとに描いています。</div>
+      <div class="tiny" style="margin-top:8px">地図は1本の指でずらせます。2本の指で広げると拡大、つまむと縮小。拡大すると点に名前が出ます。川と道路は OpenStreetMap のデータをもとに描いています。</div>
       <div class="section-title">中心部の外 <small>近い順</small></div>
       <div class="card list-card">${outs.map(findRow).join("")}</div>
       <div class="offmap"><div><span><i class="ph ph-airplane"></i>浦東空港</span><span class="muted">ホテルから東へ約40km</span></div></div>`,
@@ -1086,29 +1086,70 @@
           if (t && hasPos(t) && !inView(t.lat, t.lng)) { MAPV.lat = t.lat; MAPV.lng = t.lng; keepRender(); return; }
           showPin(focus.startsWith("f:") ? focus : t?.id);
         }
-        // 指でずらす
+        // 指で動かす：1本でずらす。2本で広げると拡大、つまむと縮小（2本の指のまん中を中心に）
         const svg = $("#mapsvg"); if (!svg) return;
-        let st = null;
-        svg.addEventListener("pointerdown", (e) => { st = { x: e.clientX, y: e.clientY, lat: MAPV.lat, lng: MAPV.lng, drag: false, id: e.pointerId }; });
+        const fingers = new Map(); // いま地図に触れている指 { pointerId: {x, y} }
+        let st = null; // 1本でずらしているとき
+        let pz = null; // 2本で拡大・縮小しているとき
+        const clampZ = (z) => Math.min(5, Math.max(0.4, z));
+        const two = () => { const [a, b] = [...fingers.values()]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) }; };
+        const capture = (id) => { try { svg.setPointerCapture(id); } catch {} };
+        svg.addEventListener("pointerdown", (e) => {
+          fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          if (fingers.size === 1) st = { x: e.clientX, y: e.clientY, lat: MAPV.lat, lng: MAPV.lng, drag: false, id: e.pointerId };
+          if (fingers.size === 2) { // 2本目が触れたら、ずらすのをやめて拡大・縮小に切りかえる
+            const m = two(), r = svg.getBoundingClientRect();
+            pz = { m0: m, r, ox: m.x - r.left, oy: m.y - r.top, z0: MAPV.zoom, b0: viewBounds(), s: 1, dx: 0, dy: 0 };
+            st = null;
+            fingers.forEach((_, id) => capture(id));
+            svg.style.transformOrigin = `${pz.ox}px ${pz.oy}px`;
+          }
+        });
         svg.addEventListener("pointermove", (e) => {
+          if (!fingers.has(e.pointerId)) return;
+          fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          if (pz) { // 指を動かしている間は見た目だけ拡大・縮小し、指を離したら描き直す
+            if (fingers.size < 2) return;
+            const m = two();
+            pz.s = clampZ(pz.z0 * (m.d / Math.max(1, pz.m0.d))) / pz.z0;
+            pz.dx = m.x - pz.m0.x; pz.dy = m.y - pz.m0.y;
+            svg.style.transform = `translate(${pz.dx}px, ${pz.dy}px) scale(${pz.s})`;
+            return;
+          }
           if (!st) return;
           const dx = e.clientX - st.x, dy = e.clientY - st.y;
-          if (!st.drag && Math.hypot(dx, dy) > 6) { st.drag = true; svg.setPointerCapture(st.id); }
+          if (!st.drag && Math.hypot(dx, dy) > 6) { st.drag = true; capture(st.id); }
           if (st.drag) svg.style.transform = `translate(${dx}px, ${dy}px)`;
         });
+        // 2本の指のまん中にあった場所が、離したときの指のまん中に来るように、拡大率と中心を決める
+        const finishPinch = () => {
+          const { r, ox, oy, b0, z0, s, dx, dy } = pz; pz = null;
+          const lngP = b0.minLng + (ox / r.width) * (b0.maxLng - b0.minLng);
+          const latP = b0.maxLat - (oy / r.height) * (b0.maxLat - b0.minLat);
+          MAPV.zoom = clampZ(z0 * s);
+          const nb = viewBounds({ lat: 0, lng: 0, zoom: MAPV.zoom });
+          const spanLng = nb.maxLng - nb.minLng, spanLat = nb.maxLat - nb.minLat;
+          MAPV.lng = lngP - ((ox + dx) / r.width) * spanLng + spanLng / 2;
+          MAPV.lat = latP + ((oy + dy) / r.height) * spanLat - spanLat / 2;
+          svg.style.transform = ""; svg.style.transformOrigin = "";
+          keepRender();
+        };
         const end = (e) => {
-          if (!st) return;
-          if (st.drag) {
+          const had = fingers.delete(e.pointerId);
+          if (pz) { if (fingers.size < 2) finishPinch(); return; }
+          if (!had || !st || e.pointerId !== st.id) return;
+          if (st.drag && e.type === "pointerup") {
             const r = svg.getBoundingClientRect(); const dx = e.clientX - st.x, dy = e.clientY - st.y;
             MAPV.lng = st.lng - (dx / r.width) * (B.maxLng - B.minLng);
             MAPV.lat = st.lat + (dy / r.height) * (B.maxLat - B.minLat);
             svg.style.transform = ""; st = null; keepRender(); return;
           }
-          st = null;
+          svg.style.transform = ""; st = null;
         };
         svg.addEventListener("pointerup", end);
-        svg.addEventListener("pointercancel", () => { svg.style.transform = ""; st = null; });
-        svg.addEventListener("wheel", (e) => { e.preventDefault(); MAPV.zoom = Math.min(5, Math.max(0.4, MAPV.zoom * (e.deltaY < 0 ? 1.25 : 0.8))); keepRender(); }, { passive: false });
+        svg.addEventListener("pointercancel", end);
+        svg.addEventListener("gesturestart", (e) => e.preventDefault()); // iPhone：ページ全体が拡大されないように
+        svg.addEventListener("wheel", (e) => { e.preventDefault(); MAPV.zoom = clampZ(MAPV.zoom * (e.deltaY < 0 ? 1.25 : 0.8)); keepRender(); }, { passive: false });
       },
     };
   };
