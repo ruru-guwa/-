@@ -372,12 +372,12 @@
           <a class="db-btn taxi" href="#/tools/taxi"><span class="db-top"><span class="db-ic"><i class="ph ph-taxi"></i></span><span class="db-chip">指差し提示</span></span><span class="db-label"><b>タクシーに見せる</b><small>打車指南・目的地カード</small></span></a>
           <a class="db-btn shop" href="#/tools/phrase"><span class="db-top"><span class="db-ic"><i class="ph ph-receipt"></i></span><span class="db-chip">注文・会計</span></span><span class="db-label"><b>お店で見せる</b><small>点餐・買単フレーズ</small></span></a>
         </div>
+        <a class="dtips" href="#/tips"><i class="ph ph-scroll"></i><span class="dtips-chip">Tips</span><span class="dtips-text">${esc(trivia)}</span><i class="ph ph-caret-right"></i></a>
         <section class="dd">
           <div class="dd-head"><span><i class="ph ph-calendar-dots"></i>旅程ダイレクトアクセス</span><small>タップして詳細へ</small></div>
           <div class="dd-grid">${days}</div>
         </section>
         <div class="dt">${tiles}</div>
-        <a class="dtips" href="#/tips"><i class="ph ph-scroll"></i><span class="dtips-chip">Tips</span><span class="dtips-text">${esc(trivia)}</span><i class="ph ph-caret-right"></i></a>
       </div>`,
     };
   };

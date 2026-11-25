@@ -1235,3 +1235,39 @@ main:has(> .dash) { padding-top: 8px; padding-bottom: 10px; }
 .dt-tile { min-height: 70px; padding: 6px 4px; }
 .dt-ic { width: 28px; height: 28px; margin-bottom: 2px; font-size: 17px; }
 .dt-tile b, .dt-tile small { line-height: 1.25; }
+
+/* ---------------- ホーム：縦いっぱいを使う（2026/11/26） ----------------
+   Tipsは旅程の上。画面の高さに合わせて、大きなボタン・旅程・9つのマスを伸ばし、アイコンと文字も少し大きくする。
+   小さい画面では今の大きさのまま（そのときだけ少しスクロール） */
+main:has(> .dash) {
+  display: flex; flex-direction: column;
+  min-height: calc(100vh - 56px - env(safe-area-inset-top) - var(--tabbar-h) - env(safe-area-inset-bottom));
+  min-height: calc(100svh - 56px - env(safe-area-inset-top) - var(--tabbar-h) - env(safe-area-inset-bottom));
+}
+.dash { flex: 1 0 auto; width: 100%; }
+.db { flex: 2 1 auto; max-height: 150px; }
+.dd { flex: 1 1 auto; max-height: 180px; display: flex; flex-direction: column; }
+.dd-grid { flex: 1 1 auto; }
+.dt { flex: 4 1 auto; max-height: 400px; grid-auto-rows: 1fr; }
+.db-ic { width: clamp(30px, 4.1svh, 36px); height: clamp(30px, 4.1svh, 36px); font-size: clamp(18px, 2.5svh, 22px); }
+.db-label b { font-size: clamp(1rem, 2.2svh, 1.15rem); }
+.dd-day b { font-size: clamp(.84rem, 1.95svh, .95rem); }
+.dt-ic { width: clamp(28px, 3.9svh, 36px); height: clamp(28px, 3.9svh, 36px); font-size: clamp(17px, 2.4svh, 21px); }
+.dt-tile b { font-size: clamp(.8rem, 1.7svh, .9rem); }
+@media (min-height: 740px) {
+  .dtips-text { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.5; }
+}
+/* 高さの小さい画面（iPhone SE など）は、余白と部品を少し詰めて1画面に収める */
+@media (max-height: 700px) {
+  main:has(> .dash) { padding-top: 6px; padding-bottom: 6px; }
+  .dash { gap: 6px; }
+  .db-btn { min-height: 68px; padding: 5px 10px; }
+  .db-ic { width: 28px; height: 28px; font-size: 17px; }
+  .db-label b { font-size: .95rem; }
+  .db-label small { line-height: 1.25; }
+  .dd { padding: 6px; }
+  .dd-head { padding-bottom: 2px; }
+  .dd-day { min-height: 56px; padding: 6px 2px 4px; }
+  .dt-tile { min-height: 64px; padding: 4px; }
+  .dt-ic { width: 26px; height: 26px; margin-bottom: 1px; font-size: 16px; }
+}
