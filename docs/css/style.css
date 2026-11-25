@@ -1329,3 +1329,6 @@ button.db-btn { width: 100%; border: 0; text-align: left; cursor: pointer; }
 .say-btn .ph { font-size: 22px; }
 .say-btn.on { background: var(--pri-soft); color: var(--pri-ink); }
 .say-note { max-width: 26em; margin-top: 8px; color: var(--sub2); font-size: .78rem; line-height: 1.5; }
+/* お店で見せる：読点（，）の所で折り返す。長いフレーズ（13文字以上）は少し小さく */
+.show .zh { word-break: keep-all; overflow-wrap: anywhere; }
+.show .zh.long { font-size: clamp(1.8rem, 8.5vw, 3.4rem); }

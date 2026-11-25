@@ -1223,7 +1223,7 @@
       return {
         title: "お店で見せる",
         html: `<div class="seg seg-full">${cats.map((c) => `<a class="${c === cur ? "on" : ""}" href="#/tools/phrase/${encodeURIComponent(c)}?keep=1">${c}<small>${PHRASES.filter((p) => p.cat === c).length}</small></a>`).join("")}</div>
-        <p class="muted" style="margin:0 2px 10px">タップすると全画面で大きく表示されます。お店の人に画面を見せてください。「中国語で読み上げる」で声でも伝えられます。</p>
+        <p class="muted" style="margin:0 2px 10px">タップすると全画面で大きく表示されます。お店の人に画面を見せてください。「中国語で読み上げる」で声でも伝えられます。どれも「请（どうぞ）」「麻烦您（お手数ですが）」「谢谢（ありがとう）」などをつけた丁寧な言い方です。</p>
         ${PHRASES.filter((p) => p.cat === cur).map((p) => `<button class="list-btn" data-act="show-phrase" data-zh="${esc(p.zh)}" data-py="${esc(p.py)}" data-ja="${esc(p.ja)}"><div><div class="zh">${esc(p.zh)}</div><div class="ja">${esc(p.ja)}・${esc(p.py)}</div></div></button>`).join("")}`,
       };
     },
@@ -1400,7 +1400,7 @@
     openShow("show", (st) => {
       st.say = () => zh;
       return `<button class="iconbtn close" aria-label="閉じる">${IC.close}</button>
-      <div class="zh" lang="zh-CN">${esc(zh)}</div>${addr ? `<div class="addr">${esc(addr)}</div>` : ""}
+      <div class="zh${[...zh].length > 12 ? " long" : ""}" lang="zh-CN">${esc(zh)}</div>${addr ? `<div class="addr">${esc(addr)}</div>` : ""}
       ${py ? `<div class="py">${esc(py)}</div>` : ""}${sayBtn(st.speaking)}<div class="ja">${esc(ja)}</div>
       <div class="hint">画面をタップすると閉じます</div>`;
     });
