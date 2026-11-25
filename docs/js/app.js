@@ -348,14 +348,19 @@
       return `<a class="dd-day ${park ? "hot" : ""} ${today ? "today" : ""}" href="#/plan/${i}">${today ? `<span class="dd-flag">今日</span>` : park ? `<span class="dd-flag">注目</span>` : ""}
         <span class="dd-date">${d.label}(${d.dow})</span><b>${esc(d.short || d.title)}</b><small>${done}/${all} 済</small></a>`;
     }).join("");
+    // 機能は3×3。1段目は下のタブと同じ「ディズニー・地図・発見」、最後に「便利ツール」（タブの行き先は全部ホームからも1タップで。りゅうさんの希望）
+    const park = PLAN.find((d) => /ディズニー/.test(d.title));
     const tiles = [
+      { href: "#/disney", icon: "castle-turret", c: "pri", label: "ディズニー", sub: park ? `${park.label}（${park.dow}）` : "攻略ガイド", tab: true },
+      { href: "#/map", icon: "map-trifold", c: "green", label: "地図", sub: "ルート・昔の地図", tab: true },
+      { href: "#/search", icon: "compass", c: "peach", label: "発見", sub: `観光・グルメ${FINDS.length}件`, tab: true },
       { href: "#/tools/rate", icon: "currency-cny", c: "green", label: "為替計算", sub: `1元 ≈ ${state.rate}円` },
       { href: "#/tools/check", icon: "list-checks", c: "gray", label: "持ち物準備", sub: "持ち物・ToDo", badge: left ? `未完${left}` : "" },
       { href: "#/musts", icon: "bookmark-simple", c: "pink", label: "行きたい", sub: `${musts.size}/${MUSTS.length} 済` },
-      { href: "#/search", icon: "fork-knife", c: "peach", label: "観光・グルメ", sub: `全${FINDS.length}件` },
       { href: "#/reads/article", icon: "book-open-text", c: "gray", label: "旅のしおり", sub: `全${Object.keys(ARTICLES).length}記事` },
       { href: "#/tools/emergency", icon: "first-aid-kit", c: "red", label: "領事館・病院", sub: "緊急ダイヤル" },
-    ].map((t) => `<a class="dt-tile" href="${t.href}">${t.badge ? `<span class="dt-badge">${t.badge}</span>` : ""}<span class="dt-ic c2-${t.c}"><i class="ph ph-${t.icon}"></i></span><b>${t.label}</b><small>${esc(t.sub)}</small></a>`).join("");
+      { href: "#/tools", icon: "wrench", c: "gray", label: "便利ツール", sub: "クイズ・気になる", tab: true },
+    ].map((t) => `<a class="dt-tile${t.tab ? " tab" : ""}" href="${t.href}">${t.badge ? `<span class="dt-badge">${t.badge}</span>` : ""}<span class="dt-ic c2-${t.c}"><i class="ph ph-${t.icon}"></i></span><b>${t.label}</b><small>${esc(t.sub)}</small></a>`).join("");
     const trivia = TRIVIA[Math.floor(n.getTime() / 86400000) % TRIVIA.length];
 
     return {
