@@ -24,6 +24,7 @@
     large: store.get("large", false),
     custom: store.get("custom", {}),    // 発見から予定に足した候補 { slotId: [findId, ...] }
     dwant: store.get("dwant", {}),      // ディズニーで乗りたい人 { rideId: [memberId, ...] }
+    musts: store.get("musts", []),      // 行きたい場所 ["spot:bund", "find:chagee", ...]。最初は空で、4人で選んで入れる
     read: store.get("read", {}),        // 開いた章・ページ（どこまで見たか） { "s:bund:2": 1, ... }
     last: store.get("last", null),      // 最後に読んだ章 { k: "s"|"a", id, i }（ホームの「つづきから読む」）
   };
@@ -80,11 +81,35 @@
     return null;
   }
   function splitOf(slot) { return state.sel[slot.id] || {}; }
+
+  /* 行きたい（2026/11/27「最初は0からでいい」）：最初は空。予定の候補に出てくる場所から、4人で選んで入れる。
+     場所は "spot:解説のid" か "find:発見のid"。予定の候補が行ける場所は、spot・find と covers（クルーズ → 外灘 など） */
+  const placeKeys = (o) => [...new Set([o.spot && `spot:${o.spot}`, o.find && `find:${o.find}`, ...(o.covers || [])].filter(Boolean))];
+  const SPOT_GROUP = { cruise: "night", acrobat: "night" }; // 選ぶ画面の分け方（ほかの解説は「見る・体験する」）
+  function placeOf(key) {
+    const [t, id] = String(key).split(":");
+    if (t === "spot" && SPOTS[id]) return { key, name: SPOTS[id].name, href: `#/spot/${id}`, group: SPOT_GROUP[id] || "see" };
+    const f = t === "find" ? FINDS.find((x) => x.id === id) : null;
+    if (f) return { key, name: f.name, href: `#/find/${f.id}`, group: f.cat === "food" || f.cat === "cafe" ? "eat" : f.cat === "night" ? "night" : "see" };
+    return null;
+  }
+  // 予定の候補に出てくる場所（予定の順）。opts：その場所に行ける候補、fixed：決まっている予定（ディズニーの日）
+  function mustPlaces() {
+    const m = new Map();
+    const get = (k) => { if (!m.has(k)) { const p = placeOf(k); if (!p) return null; m.set(k, { ...p, opts: [], fixed: null }); } return m.get(k); };
+    PLAN.forEach((d, di) => d.slots.forEach((s) => {
+      if (s.type === "fixed") { const p = s.spot ? get(`spot:${s.spot}`) : null; if (p && !p.fixed) p.fixed = { day: d, dayIndex: di, slot: s }; return; }
+      optionsOf(s).forEach((o) => placeKeys(o).forEach((k) => get(k)?.opts.push({ ...o, slot: s, day: d, dayIndex: di })));
+    }));
+    return m;
+  }
+  // 予定に入っている場所（選んだ候補と、決まっている予定）
   function coveredMusts() {
     const set = new Set();
     PLAN.forEach((d) => d.slots.forEach((s) => {
-      if (s.type === "choice") { const o = chosenOf(s); (o?.covers || []).forEach((c) => set.add(c)); }
-      if (s.type === "split") { Object.values(splitOf(s)).forEach((oid) => { const o = optionsOf(s).find((x) => x.id === oid); (o?.covers || []).forEach((c) => set.add(c)); }); }
+      if (s.type === "fixed") { if (s.spot) set.add(`spot:${s.spot}`); return; }
+      const picked = s.type === "choice" ? [chosenOf(s)] : Object.values(splitOf(s)).map((oid) => optionsOf(s).find((x) => x.id === oid));
+      picked.filter(Boolean).forEach((o) => placeKeys(o).forEach((k) => set.add(k)));
     }));
     return set;
   }
@@ -396,7 +421,7 @@
       { href: "#/search", icon: "compass", c: "peach", label: "発見", sub: `観光・グルメ${FINDS.length}件`, tab: true },
       { href: "#/tools/rate", icon: "currency-cny", c: "green", label: "為替計算", sub: `1元 ≈ ${state.rate}円` },
       { href: "#/tools/check", icon: "list-checks", c: "gray", label: "持ち物準備", sub: "持ち物・ToDo", badge: left ? `未完${left}` : "" },
-      { href: "#/musts", icon: "bookmark-simple", c: "pink", label: "行きたい", sub: `${musts.size}/${MUSTS.length} 済` },
+      { href: "#/musts", icon: "bookmark-simple", c: "pink", label: "行きたい", sub: state.musts.length ? `${state.musts.filter((k) => musts.has(k)).length}/${state.musts.length} 済` : "まだ0件" },
       { href: "#/reads/article", icon: "book-open-text", c: "gray", label: "旅のしおり", sub: `全${Object.keys(ARTICLES).length}記事` },
       { href: "#/tools/emergency", icon: "first-aid-kit", c: "red", label: "領事館・病院", sub: "緊急ダイヤル" },
       { href: "#/tools", icon: "wrench", c: "gray", label: "便利ツール", sub: "クイズ・気になる", tab: true },
@@ -434,22 +459,60 @@
     };
   };
 
-  /* 行きたい：4人の「絶対に行きたい」5つと、それが入っている予定 */
-  PAGES.musts = () => {
-    const covered = coveredMusts();
+  /* 行きたい：4人で選んだ「絶対に行きたい」場所と、それが予定に入っているか。
+     最初は空（2026/11/27 りゅうさんの希望「最初は0からでいい」）。「行きたい場所を選ぶ」（#/musts/pick）で入れる */
+  const fixedText = (fx) => `${fx.day.label}（${fx.day.dow}）に決まっています`;
+  PAGES.musts = (args) => {
+    if (args[0] === "pick") return mustPick();
+    const covered = coveredMusts(), places = mustPlaces();
     const chosen = (o) => (o.slot.type === "split" ? Object.values(splitOf(o.slot)).includes(o.id) : state.sel[o.slot.id] === o.id);
-    const all = allOptions();
+    const list = state.musts.map((k) => places.get(k) || (placeOf(k) ? { ...placeOf(k), opts: [], fixed: null } : null)).filter(Boolean);
+    if (!list.length) {
+      return {
+        title: "行きたい",
+        html: `<div class="must-empty"><i class="ph ph-bookmark-simple"></i><b>まだ入っていません</b>
+          <p>4人で「絶対に行きたい」と決めた場所を入れると、その場所が予定に入っているかを、ここで確かめられます。</p></div>
+        <a class="cta" href="#/musts/pick"><i class="ph ph-plus-circle"></i> 行きたい場所を選ぶ</a>
+        <p class="tiny" style="margin-top:12px">選んだ場所は、このスマホにだけ保存されます。</p>`,
+      };
+    }
+    const ok = list.filter((p) => covered.has(p.key)).length;
     return {
       title: "行きたい",
-      html: `<div class="prog"><div class="prog-top"><span>予定に入った <b>${covered.size}</b> / ${MUSTS.length}</span>${covered.size === MUSTS.length ? `<span class="prog-done"><i class="ph ph-check-circle"></i> 全部入りました</span>` : ""}</div><span class="bar"><i style="width:${Math.round((covered.size / MUSTS.length) * 100)}%"></i></span></div>
-      <div class="card menu">${MUSTS.map((m, i) => {
-        const opts = all.filter((o) => (o.covers || []).includes(m.id)), got = opts.filter(chosen), go = got[0] || opts[0];
-        return mrow({ href: go ? `#/plan/${go.dayIndex}/${go.slot.id}` : "#/plan", n: i + 1, title: m.label, read: covered.has(m.id),
-          sub: got.length ? `入っている予定：${got.map((o) => `${o.day.label} ${o.slot.title}「${o.title}」`).join("、")}` : `まだ予定に入っていません（候補 ${opts.length} か所）` });
+      html: `<div class="prog"><div class="prog-top"><span>予定に入った <b>${ok}</b> / ${list.length}</span>${ok === list.length ? `<span class="prog-done"><i class="ph ph-check-circle"></i> 全部入りました</span>` : ""}</div><span class="bar"><i style="width:${Math.round((ok / list.length) * 100)}%"></i></span></div>
+      <div class="card menu">${list.map((p, i) => {
+        const got = p.opts.filter(chosen), go = got[0] || p.opts[0];
+        const href = p.fixed ? `#/plan/${p.fixed.dayIndex}` : go ? `#/plan/${go.dayIndex}/${go.slot.id}` : p.href;
+        const sub = p.fixed ? fixedText(p.fixed)
+          : got.length ? `入っている予定：${got.map((o) => `${o.day.label} ${o.slot.title}「${o.title}」`).join("、")}`
+          : p.opts.length ? `まだ予定に入っていません（候補 ${p.opts.length} か所）` : "予定の候補にありません。押すと、この場所のページへ";
+        return mrow({ href, n: i + 1, title: p.name, read: covered.has(p.key), sub });
       }).join("")}</div>
-      <p class="tiny">4人が「絶対に行きたい」と決めた5つ。予定の候補で選ぶと✓がつきます。行を押すと、その時間帯の候補のページへ。</p>`,
+      <a class="cta alt must-edit" href="#/musts/pick"><i class="ph ph-pencil-simple"></i><span>行きたい場所を足す・外す</span><i class="ph ph-caret-right"></i></a>
+      <p class="tiny" style="margin-top:12px">予定の候補で選ぶと✓がつきます。行を押すと、その時間帯の候補のページへ。選んだ場所は、このスマホにだけ保存されます。</p>`,
     };
   };
+  // 行きたい場所を選ぶ：予定の候補に出てくる場所を、種類ごとに。押すと入る・もう一度押すと外れる
+  const MUST_GROUPS = [["see", "見る・体験する"], ["eat", "食べる・お茶"], ["night", "夜"]];
+  function mustPick() {
+    const places = mustPlaces();
+    // 予定の候補から外れた場所も、選んであれば外せるように出す
+    state.musts.forEach((k) => { if (!places.has(k)) { const p = placeOf(k); if (p) places.set(k, { ...p, opts: [], fixed: null }); } });
+    const all = [...places.values()];
+    const row = (p) => {
+      const on = state.musts.includes(p.key);
+      const sub = p.fixed ? fixedText(p.fixed) : p.opts.length ? `予定の候補 ${p.opts.length} か所` : "予定の候補にありません";
+      return `<button class="sheet-row must-pick ${on ? "on" : ""}" data-act="must" data-key="${esc(p.key)}" aria-pressed="${on}"><span class="sr-title"><b>${esc(p.name)}</b><small>${esc(sub)}</small></span><i class="ph ph-${on ? "check-circle" : "plus-circle"}"></i></button>`;
+    };
+    return {
+      title: "行きたい場所を選ぶ",
+      html: `${crumb("#/musts", "行きたい")}
+      <p class="must-lead">4人で「絶対に行きたい」と決めた場所を押してください。もう一度押すと外れます。</p>
+      ${MUST_GROUPS.map(([g, label]) => { const xs = all.filter((p) => p.group === g); return xs.length ? `<div class="label-s">${label}</div>${xs.map(row).join("")}` : ""; }).join("")}
+      <a class="cta" href="#/musts"><i class="ph ph-check"></i> 選んだ場所を見る（${state.musts.length}件）</a>
+      <p class="tiny" style="margin-top:12px">ここに出るのは、4日間の予定の候補に入っている場所です。ほかの場所も、「発見」の各ページの「予定の候補に入れる」で候補に入れると、ここに出ます。</p>`,
+    };
+  }
 
   /* 豆知識の一覧。ホームの Tips から来たときは、押したときに出ていたものを先頭に（押せない一覧なので平らな card） */
   PAGES.tips = (_, q) => {
@@ -528,8 +591,9 @@
       <div class="seg"><button class="${choose ? "on" : ""}" data-act="mode" data-mode="choose"><i class="ph ph-list-checks"></i> えらぶ</button><button class="${!choose ? "on" : ""}" data-act="mode" data-mode="view"><i class="ph ph-calendar-check"></i> アジェンダ</button></div>
       ${choose ? `<div class="tl">${day.slots.map(slotHtml).join("")}</div>` : `<div class="agenda">${day.slots.map(agendaHtml).join("")}</div>`}
       <a class="cta" href="#/map?day=${di}"><i class="ph ph-map-trifold"></i> この日のルートを地図で見る</a>
-      <div class="label-s" style="margin-top:22px">絶対に行きたい（4日間全体）</div>
-      <div class="must-row">${MUSTS.map((m) => `<span class="must ${musts.has(m.id) ? "ok" : ""}">${m.label}</span>`).join("")}</div>
+      <div class="label-s" style="margin-top:22px">行きたい場所（4日間全体）</div>
+      ${state.musts.length ? `<div class="must-row">${state.musts.map((k) => { const p = placeOf(k); return p ? `<span class="must ${musts.has(k) ? "ok" : ""}">${esc(p.name)}</span>` : ""; }).join("")}</div>`
+        : `<a class="toggle-link" href="#/musts/pick">まだ選んでいません。行きたい場所を選ぶ ›</a>`}
       <p class="tiny" style="margin-top:14px">選んだ内容はこのスマホにだけ保存されます。4人で決まったら、確定版としてサイトに反映します。</p>`,
     };
   };
@@ -1502,6 +1566,11 @@
       state.dwant[ride] = list.includes(person) ? list.filter((x) => x !== person) : [...list, person];
       if (!state.dwant[ride].length) delete state.dwant[ride];
       save("dwant"); keepRender();
+    }
+    else if (a === "must") {
+      const k = el.dataset.key, on = !state.musts.includes(k);
+      state.musts = on ? [...state.musts, k] : state.musts.filter((x) => x !== k);
+      save("musts"); toast(on ? `「${placeOf(k)?.name || ""}」を行きたいに入れました` : "行きたいから外しました"); keepRender();
     }
     else if (a === "dfilter") { dFilter = el.dataset.v; keepRender(); }
     else if (a === "large") { state.large = el.dataset.v === "1"; save("large"); applyLarge(); keepRender(); }

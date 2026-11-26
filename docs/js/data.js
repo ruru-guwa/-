@@ -2297,16 +2297,8 @@ const ARTICLES = {
 
 /* ---------------- 予定（時間帯ごとの選択肢） ----------------
    type: fixed（固定） / choice（全員で1つ選ぶ） / split（人ごとに選べる）
-   option.covers：「絶対に行きたい」のどれを満たすか
+   option.covers：spot・find のほかに、この候補で行ける場所（"spot:bund" など）。「行きたい」の✓に使う
 ------------------------------------------------------------ */
-const MUSTS = [
-  { id: "bund", label: "外灘" },
-  { id: "yuyuan", label: "豫園" },
-  { id: "chagee", label: "CHAGEE" },
-  { id: "cruise", label: "黄浦江クルーズ" },
-  { id: "maglev", label: "リニア" },
-];
-
 const PLAN = [
   {
     date: "2026-12-09", label: "12/9", dow: "水", title: "到着の日", short: "到着",
@@ -2315,9 +2307,9 @@ const PLAN = [
       { id: "d1-arr", type: "fixed", time: "14:10", end: "15:10", title: "入国審査・荷物の受け取り", note: "混雑すると1時間ほどかかることも" },
       { id: "d1-move", type: "choice", time: "15:10", end: "16:30", title: "空港 → ホテル",
         options: [
-          { id: "maglev-taxi", title: "リニア ＋ タクシー", dur: "約1時間", covers: ["maglev"], why: "着いたその日に、最高時速300kmの営業用リニアを体験", look: "車窓の景色が、空港周辺の畑・工場から、住宅地・高層ビルへと変わっていく様子", move: "リニアで龍陽路駅まで約8分（片道50元、当日の航空券を見せると40元）→ タクシーでホテルまで約30分", tags: ["移動を楽しむ"], lat: 31.2054, lng: 121.5526 },
+          { id: "maglev-taxi", title: "リニア ＋ タクシー", dur: "約1時間", covers: ["find:maglev"], why: "着いたその日に、最高時速300kmの営業用リニアを体験", look: "車窓の景色が、空港周辺の畑・工場から、住宅地・高層ビルへと変わっていく様子", move: "リニアで龍陽路駅まで約8分（片道50元、当日の航空券を見せると40元）→ タクシーでホテルまで約30分", tags: ["移動を楽しむ"], lat: 31.2054, lng: 121.5526 },
           { id: "taxi", title: "タクシーのみ", dur: "約1時間（道路の混み具合による）", why: "荷物があっても乗り換えなし。4人なら割り勘で楽", look: "高速道路から見える浦東の街の広がり", move: "空港のタクシー乗り場から。4人＋荷物なら大きめの車を", tags: [] },
-          { id: "maglev-metro", title: "リニア ＋ 地下鉄2号線", dur: "約1時間15分", covers: ["maglev"], why: "上海の交通をまるごと体験。龍陽路から南京東路駅まで乗り換えなし", look: "地下鉄の手荷物検査、黄浦江の下をくぐる区間", move: "リニア約8分 → 龍陽路で2号線 → 南京東路駅から徒歩", tags: ["移動を楽しむ"] },
+          { id: "maglev-metro", title: "リニア ＋ 地下鉄2号線", dur: "約1時間15分", covers: ["find:maglev"], why: "上海の交通をまるごと体験。龍陽路から南京東路駅まで乗り換えなし", look: "地下鉄の手荷物検査、黄浦江の下をくぐる区間", move: "リニア約8分 → 龍陽路で2号線 → 南京東路駅から徒歩", tags: ["移動を楽しむ"] },
         ] },
       { id: "d1-in", type: "fixed", time: "16:30", end: "17:30", title: "ホテルにチェックイン・ひと休み", note: "コンラッド上海（南京東路789号）" },
       { id: "d1-din", type: "choice", time: "17:30", end: "19:00", title: "夕食",
@@ -2329,10 +2321,10 @@ const PLAN = [
         ] },
       { id: "d1-night", type: "choice", time: "19:00", end: "22:00", title: "夜",
         options: [
-          { id: "cruise", title: "黄浦江ナイトクルーズ", spot: "cruise", dur: "約1時間＋移動", covers: ["cruise", "bund"], why: "川の上から、外灘と陸家嘴の夜景を両方見られる", look: "両岸の明かりの違い（浦西＝石造りのライトアップ、浦東＝LEDの光）", move: "外灘の南の十六鋪の乗り場から。タクシー約10分（1人110〜145元ほど・予約がおすすめ）", tags: ["夜を楽しむ"], lat: 31.233, lng: 121.494 },
-          { id: "bund-night", title: "外灘の夜景を歩く", spot: "bund", dur: "約1.5時間", covers: ["bund"], why: "南京東路を歩いて外灘へ。最初の夜にいちばん上海らしい景色を", look: "22時ごろの消灯の瞬間", move: "ホテルから徒歩約20分", tags: ["夜を楽しむ", "歩く"], lat: 31.242, lng: 121.486 },
-          { id: "d1-northbund", title: "北外灘の夜景（人の少ない穴場）", find: "north-bund", dur: "約1時間", covers: ["bund"], why: "外灘の人混みを避けて、違う角度の陸家嘴を見る", look: "外白渡橋と上海大廈のライトアップ", move: "ホテルからタクシー約10分", tags: ["夜を楽しむ"], lat: 31.2508, lng: 121.493 },
-          { id: "xmas-market", title: "外灘源のクリスマスマーケット", spot: "bund", dur: "約1時間", covers: ["bund"], why: "12月だけのお楽しみ。外灘のすぐ裏の洋館街が会場", look: "租界時代の赤レンガの建物と、ドイツ式の屋台", move: "ホテルから徒歩約25分（水曜は15〜22時）", tags: ["夜を楽しむ", "季節限定"], lat: 31.246, lng: 121.4845 },
+          { id: "cruise", title: "黄浦江ナイトクルーズ", spot: "cruise", dur: "約1時間＋移動", covers: ["spot:bund"], why: "川の上から、外灘と陸家嘴の夜景を両方見られる", look: "両岸の明かりの違い（浦西＝石造りのライトアップ、浦東＝LEDの光）", move: "外灘の南の十六鋪の乗り場から。タクシー約10分（1人110〜145元ほど・予約がおすすめ）", tags: ["夜を楽しむ"], lat: 31.233, lng: 121.494 },
+          { id: "bund-night", title: "外灘の夜景を歩く", spot: "bund", dur: "約1.5時間", why: "南京東路を歩いて外灘へ。最初の夜にいちばん上海らしい景色を", look: "22時ごろの消灯の瞬間", move: "ホテルから徒歩約20分", tags: ["夜を楽しむ", "歩く"], lat: 31.242, lng: 121.486 },
+          { id: "d1-northbund", title: "北外灘の夜景（人の少ない穴場）", find: "north-bund", dur: "約1時間", covers: ["spot:bund"], why: "外灘の人混みを避けて、違う角度の陸家嘴を見る", look: "外白渡橋と上海大廈のライトアップ", move: "ホテルからタクシー約10分", tags: ["夜を楽しむ"], lat: 31.2508, lng: 121.493 },
+          { id: "xmas-market", title: "外灘源のクリスマスマーケット", spot: "bund", dur: "約1時間", why: "12月だけのお楽しみ。外灘のすぐ裏の洋館街が会場", look: "租界時代の赤レンガの建物と、ドイツ式の屋台", move: "ホテルから徒歩約25分（水曜は15〜22時）", tags: ["夜を楽しむ", "季節限定"], lat: 31.246, lng: 121.4845 },
         ] },
     ],
   },
@@ -2342,25 +2334,25 @@ const PLAN = [
       { id: "d2-morning", type: "choice", time: "7:00", end: "8:30", title: "朝",
         options: [
           { id: "park-morning", title: "人民公園の朝", spot: "locallife", dur: "約1時間", why: "地元の人の朝の過ごし方を見る。ホテルの目の前", look: "太極拳、社交ダンス、歌の練習。ここは昔の競馬場だった", move: "ホテルから徒歩すぐ", tags: ["日常生活", "朝"], lat: 31.234, lng: 121.4665 },
-          { id: "bund-morning", title: "朝の外灘", spot: "bund", dur: "約1時間", covers: ["bund"], why: "夜とまったく違う、静かな外灘", look: "朝日を浴びる建物、結婚写真の撮影", move: "ホテルから徒歩約20分", tags: ["朝"] },
+          { id: "bund-morning", title: "朝の外灘", spot: "bund", dur: "約1時間", why: "夜とまったく違う、静かな外灘", look: "朝日を浴びる建物、結婚写真の撮影", move: "ホテルから徒歩約20分", tags: ["朝"] },
           { id: "breakfast-local", title: "地元の朝ごはん", spot: "locallife", dur: "約45分", why: "上海の朝の定番「生煎（焼き小籠包）」や豆乳と揚げパン", look: "出勤前にさっと食べる人たち", move: "ホテル周辺", tags: ["食べる", "日常生活", "朝"] },
           { id: "hotel-breakfast", title: "ホテルでゆっくり朝食", dur: "約1時間", why: "上層階からの朝の眺め", look: "", move: "ホテル内", tags: [] },
         ] },
       { id: "d2-am", type: "choice", time: "9:00", end: "11:00", title: "午前",
         options: [
-          { id: "yuyuan", title: "豫園・旧市街", spot: "yuyuan", dur: "約2〜3時間", covers: ["yuyuan"], why: "「もともとの上海」を知る", look: "龍の壁の爪の数、透かし窓、商城の裏の路地", move: "タクシー約15分", tags: ["見る", "歴史"], lat: 31.2292, lng: 121.4876 },
+          { id: "yuyuan", title: "豫園・旧市街", spot: "yuyuan", dur: "約2〜3時間", why: "「もともとの上海」を知る", look: "龍の壁の爪の数、透かし窓、商城の裏の路地", move: "タクシー約15分", tags: ["見る", "歴史"], lat: 31.2292, lng: 121.4876 },
           { id: "history-museum", title: "上海歴史博物館", spot: "nanjing", dur: "約1.5時間", why: "旅の最初に上海の歴史を一気に頭に入れる。旧競馬場の建物を使っている", look: "租界時代の街の模型、昔の写真", move: "ホテルから徒歩約10分（予約・休館日は要確認）", tags: ["学ぶ", "歴史"], lat: 31.2338, lng: 121.4655 },
           { id: "planning-hall", title: "上海城市規劃展示館", spot: "nanjing", dur: "約1.5時間", why: "上海の都市計画の展示館。街全体の巨大な模型で都市の構造がわかる", look: "浦西と浦東の大きさの違い、これからの計画", move: "ホテルから徒歩約10分（開館情報は要確認）", tags: ["学ぶ", "交通"], lat: 31.2315, lng: 121.4705 },
         ] },
       { id: "d2-lunch", type: "choice", time: "11:00", end: "12:30", title: "昼食",
         options: [
-          { id: "nanxiang", title: "南翔饅頭店の小籠包", spot: "yuyuan", dur: "約1時間", covers: ["yuyuan"], why: "豫園の名物。1900年ごろ創業の老舗", look: "2・3階の店内席が落ち着いて食べられる", move: "豫園の九曲橋のそば", tags: ["食べる"], lat: 31.2288, lng: 121.488 },
+          { id: "nanxiang", title: "南翔饅頭店の小籠包", spot: "yuyuan", dur: "約1時間", why: "豫園の名物。1900年ごろ創業の老舗", look: "2・3階の店内席が落ち着いて食べられる", move: "豫園の九曲橋のそば", tags: ["食べる"], lat: 31.2288, lng: 121.488 },
           { id: "d2-shanghai", title: "老舗の上海料理", find: "benbang", dur: "約1.5時間", why: "本格的な上海の家庭料理・宴会料理を", look: "", move: "豫園〜外灘エリア", tags: ["食べる"] },
         ] },
       { id: "d2-chagee", type: "choice", time: "12:30", end: "14:00", title: "お茶・散歩",
         options: [
-          { id: "chagee", title: "CHAGEE（覇王茶姫）", find: "chagee", dur: "約30分", covers: ["chagee"], why: "今の中国の若者に大人気の、新しいスタイルの中国茶", look: "伝統のお茶をミルクティーにした「新中式」のデザイン", move: "南京東路などの店舗", tags: ["お茶"] },
-          { id: "walk-bund-yuyuan", title: "外灘まで歩いて戻る", spot: "bund", dur: "約1時間", covers: ["bund"], why: "旧市街→租界の境目を歩いて越える", look: "人民路（城壁の跡）、延安東路（昔の川）", move: "徒歩", tags: ["歩く", "歴史"] },
+          { id: "chagee", title: "CHAGEE（覇王茶姫）", find: "chagee", dur: "約30分", why: "今の中国の若者に大人気の、新しいスタイルの中国茶", look: "伝統のお茶をミルクティーにした「新中式」のデザイン", move: "南京東路などの店舗", tags: ["お茶"] },
+          { id: "walk-bund-yuyuan", title: "外灘まで歩いて戻る", spot: "bund", dur: "約1時間", why: "旧市街→租界の境目を歩いて越える", look: "人民路（城壁の跡）、延安東路（昔の川）", move: "徒歩", tags: ["歩く", "歴史"] },
         ] },
       { id: "d2-split", type: "split", time: "14:00", end: "16:00", title: "りゅうは一度ホテルへ",
         fixedFor: { ryu: "ホテルで用事（日本時間 15:00〜17:00）" },
@@ -2388,11 +2380,11 @@ const PLAN = [
       { id: "d2-night", type: "split", time: "19:00", end: "21:30", title: "夜（別行動もOK）",
         options: [
           { id: "acrobat", title: "雑技団（ERA 時空之旅）", spot: "acrobat", dur: "約1時間＋移動", why: "2000年以上の歴史がある中国の雑技。世界トップクラスの技", look: "フィナーレの、鉄の球の中を走るバイク", move: "地下鉄1号線で人民広場→上海馬戯城（約15分）。19:30開演・要予約（380元〜）", tags: ["夜を楽しむ"] },
-          { id: "cruise2", title: "黄浦江ナイトクルーズ", spot: "cruise", dur: "約1時間＋移動", covers: ["cruise", "bund"], why: "12/9に行けなかった場合の予備日にも", look: "", move: "十六鋪の乗り場から", tags: ["夜を楽しむ"] },
-          { id: "northbund-night", title: "北外灘の夜景（穴場）", find: "north-bund", dur: "約1時間", covers: ["bund"], why: "人の少ない川沿いから、ゆっくり夜景を", look: "陸家嘴を斜め横から見る角度", move: "タクシー約10分", tags: ["夜を楽しむ"] },
+          { id: "cruise2", title: "黄浦江ナイトクルーズ", spot: "cruise", dur: "約1時間＋移動", covers: ["spot:bund"], why: "12/9に行けなかった場合の予備日にも", look: "", move: "十六鋪の乗り場から", tags: ["夜を楽しむ"] },
+          { id: "northbund-night", title: "北外灘の夜景（穴場）", find: "north-bund", dur: "約1時間", covers: ["spot:bund"], why: "人の少ない川沿いから、ゆっくり夜景を", look: "陸家嘴を斜め横から見る角度", move: "タクシー約10分", tags: ["夜を楽しむ"] },
           { id: "speaklow", title: "隠れ家バー Speak Low", find: "speak-low", dur: "約1.5時間", why: "日本人バーテンダーが作った、アジアの名店", look: "本棚の扉の向こうの入口", move: "タクシー約15分", tags: ["夜を楽しむ"] },
-          { id: "bar", title: "外灘のルーフトップバー・レストラン", spot: "bund", find: "rooftop", dur: "約2時間", covers: ["bund"], why: "夜景を眺めながらゆっくり食事", look: "", move: "外灘沿い", tags: ["夜を楽しむ", "食べる"] },
-          { id: "xmas-market2", title: "外灘源のクリスマスマーケット", spot: "bund", dur: "約1時間", covers: ["bund"], why: "木曜も15〜22時に開いている", look: "", move: "ホテルから徒歩約25分", tags: ["夜を楽しむ", "季節限定"] },
+          { id: "bar", title: "外灘のルーフトップバー・レストラン", spot: "bund", find: "rooftop", dur: "約2時間", why: "夜景を眺めながらゆっくり食事", look: "", move: "外灘沿い", tags: ["夜を楽しむ", "食べる"] },
+          { id: "xmas-market2", title: "外灘源のクリスマスマーケット", spot: "bund", dur: "約1時間", why: "木曜も15〜22時に開いている", look: "", move: "ホテルから徒歩約25分", tags: ["夜を楽しむ", "季節限定"] },
         ] },
     ],
   },
@@ -2417,7 +2409,7 @@ const PLAN = [
     slots: [
       { id: "d4-am", type: "choice", time: "8:00", end: "11:30", title: "午前",
         options: [
-          { id: "bund-morning2", title: "朝の外灘をもう一度", spot: "bund", dur: "約1.5時間", covers: ["bund"], why: "夜しか見ていなければ、朝の顔も見て帰る", look: "1日目の夜に撮った写真と同じ場所で撮る", move: "徒歩約20分", tags: ["朝", "歩く"] },
+          { id: "bund-morning2", title: "朝の外灘をもう一度", spot: "bund", dur: "約1.5時間", why: "夜しか見ていなければ、朝の顔も見て帰る", look: "1日目の夜に撮った写真と同じ場所で撮る", move: "徒歩約20分", tags: ["朝", "歩く"] },
           { id: "souvenir", title: "南京東路・スーパーでお土産", spot: "nanjing", dur: "約2時間", why: "最終日にまとめて買う", look: "", move: "ホテル周辺", tags: ["買う"] },
           { id: "last-food", title: "小籠包・生煎の食べ納め", find: "shengjian", dur: "約45分", why: "帰る前に、もう一度上海の味を", look: "2つの流派の生煎の食べ比べ", move: "ホテル周辺（南京東路など）", tags: ["食べる"] },
           { id: "postal-sat", title: "上海郵政博物館の屋上（土曜は開館）", find: "postal-museum", dur: "約1時間", why: "最後に、蘇州河と陸家嘴を高い所から", look: "屋上庭園からの眺め", move: "タクシー約10分", tags: ["見る"], lat: 31.2468, lng: 121.4837 },
@@ -2426,7 +2418,7 @@ const PLAN = [
       { id: "d4-move", type: "choice", time: "12:00", end: "13:00", title: "ホテル → 空港",
         options: [
           { id: "taxi-airport", title: "タクシー", dur: "約1時間", why: "荷物が多い最終日は乗り換えなしで", look: "", move: "大きめの車を手配", tags: [] },
-          { id: "maglev-back", title: "地下鉄2号線 ＋ リニア", dur: "約1時間15分", covers: ["maglev"], why: "行きに乗らなかった場合は帰りに", look: "", move: "南京東路駅 → 龍陽路 → リニア", tags: ["移動を楽しむ"] },
+          { id: "maglev-back", title: "地下鉄2号線 ＋ リニア", dur: "約1時間15分", covers: ["find:maglev"], why: "行きに乗らなかった場合は帰りに", look: "", move: "南京東路駅 → 龍陽路 → リニア", tags: ["移動を楽しむ"] },
         ] },
       { id: "d4-fly", type: "fixed", time: "15:15", end: "17:30", title: "上海浦東 → 関空（春秋航空）", note: "15:15発（現地時間）→ 関空18:30着（日本時間）。2時間前には空港に" },
     ],

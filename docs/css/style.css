@@ -1410,3 +1410,19 @@ button.db-btn { width: 100%; border: 0; text-align: left; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .dtips-text { transition: none; } }
 @media (min-height: 740px) { .dtips { min-height: 58px; } }
 .tip-list { padding-left: 14px; padding-right: 14px; }
+
+/* ===== 行きたい（最初は空。4人で選んで入れる。2026/11/27） =====
+   空のときの説明は押せないので平ら（点線の枠）。選ぶ行は押せるので浮かせる（.sheet-row の --tap） */
+.must-empty { margin: 18px 0 2px; padding: 26px 18px 22px; text-align: center; border: 1.5px dashed var(--edge); border-radius: var(--radius); background: #fff; }
+.must-empty .ph { font-size: 40px; color: var(--pri); }
+.must-empty b { display: block; margin-top: 6px; font-size: 1.05rem; }
+.must-empty p { margin: 8px 0 0; color: var(--sub); font-size: .88rem; line-height: 1.7; }
+.must-lead { margin: 6px 2px 0; color: var(--sub); font-size: .9rem; line-height: 1.7; }
+.sheet-row.must-pick { min-height: 58px; margin-bottom: 8px; }
+.sheet-row .sr-title b { display: block; font-weight: 700; line-height: 1.45; }
+.sheet-row .sr-title small { display: block; margin-top: 2px; color: var(--sub); font-size: .78rem; }
+.cta.alt.must-edit { margin: 14px 0 0; }
+
+/* 4日間の予定の名前は1行で（「ディズニー」が「ディズニ／ー」と折れないように。2026/11/27）
+   背の高い画面で文字を大きくした分、画面の横幅（vw）でも上限をかける。vw は「文字を大きく」の設定でも大きくならない */
+.dd-day b { white-space: nowrap; font-size: min(clamp(.84rem, 1.95svh, .95rem), 3.75vw); }
